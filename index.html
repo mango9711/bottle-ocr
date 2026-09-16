@@ -1,0 +1,2926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭调酒台 · 按库存推荐鸡尾酒配方</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg0: #060d0b;
+    --emerald: #103d33;
+    --emerald-light: #1b5e4e;
+    --gold: #d4af6a;
+    --gold-light: #ecd39a;
+    --gold-deep: #a9823f;
+    --card: rgba(19, 46, 40, 0.42);
+    --card-border: rgba(212, 175, 106, 0.24);
+    --text: #f2ede1;
+    --soft: rgba(242, 237, 225, 0.66);
+    --faint: rgba(242, 237, 225, 0.42);
+    --ok: #7fce9a;
+    --miss: #e8a05a;
+    --c-base: #ddb06b;
+    --c-liqueur: #e88aa6;
+    --c-syrup: #e6c86a;
+    --c-mixer: #5fc7b6;
+    --c-extra: #8cc98a;
+    --serif: "Times New Roman", Georgia, "Songti SC", serif;
+  }
+
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    background:
+      radial-gradient(900px 480px at 50% -8%, rgba(212, 175, 106, 0.15), transparent 62%),
+      radial-gradient(780px 480px at 90% 24%, rgba(27, 94, 78, 0.34), transparent 60%),
+      radial-gradient(720px 520px at 4% 72%, rgba(16, 61, 51, 0.4), transparent 62%),
+      linear-gradient(180deg, #0a1714 0%, #060d0b 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 36px 16px 96px;
+  }
+
+  .app { width: 100%; max-width: 780px; }
+
+  header { text-align: center; margin-bottom: 22px; }
+  header h1 {
+    font-size: 32px; letter-spacing: 3px; font-weight: 800;
+    background: linear-gradient(90deg, var(--gold-light), var(--gold) 55%, #a9823f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { font-size: 14px; color: var(--soft); margin-top: 8px; line-height: 1.7; }
+  header .rule {
+    width: 64px; height: 2px; margin: 14px auto 0; border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .site-share-btn {
+    margin-top: 16px;
+    font-family: inherit; font-size: 13px; letter-spacing: 0.5px; cursor: pointer;
+    color: var(--gold-light);
+    background: rgba(212, 175, 106, 0.08);
+    border: 1px solid rgba(212, 175, 106, 0.45);
+    border-radius: 999px; padding: 9px 22px;
+    transition: 0.2s;
+  }
+  .site-share-btn:hover { background: rgba(212, 175, 106, 0.18); border-color: rgba(212, 175, 106, 0.75); transform: translateY(-1px); }
+  .site-share-btn:active { transform: translateY(0); }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    padding: 22px 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  .panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .panel-head h2 { font-size: 17px; font-weight: 700; letter-spacing: 1px; }
+  .panel-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mini-btn {
+    font-family: inherit; font-size: 12.5px; cursor: pointer;
+    color: var(--soft); background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(244, 234, 217, 0.16);
+    border-radius: 999px; padding: 6px 14px; transition: 0.2s;
+  }
+  .mini-btn:hover { color: var(--text); border-color: rgba(212, 175, 106, 0.5); }
+  .inv-count { font-size: 12.5px; color: var(--faint); }
+  .inv-count b { color: var(--gold-light); font-size: 15px; }
+
+  .cat { margin-top: 20px; }
+  .cat-title { display: flex; align-items: center; gap: 9px; font-size: 14.5px; font-weight: 700; }
+  .cat-title .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .cat-title .cat-hint { font-size: 12px; font-weight: 400; color: var(--faint); }
+  .cat[data-cat="base"] .dot { background: var(--c-base); box-shadow: 0 0 8px var(--c-base); }
+  .cat[data-cat="liqueur"] .dot { background: var(--c-liqueur); box-shadow: 0 0 8px var(--c-liqueur); }
+  .cat[data-cat="syrup"] .dot { background: var(--c-syrup); box-shadow: 0 0 8px var(--c-syrup); }
+  .cat[data-cat="mixer"] .dot { background: var(--c-mixer); box-shadow: 0 0 8px var(--c-mixer); }
+  .cat[data-cat="extra"] .dot { background: var(--c-extra); box-shadow: 0 0 8px var(--c-extra); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+  .chip {
+    font-family: inherit; font-size: 13px; cursor: pointer;
+    padding: 8px 15px; border-radius: 999px;
+    color: var(--soft); background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(244, 234, 217, 0.16);
+    transition: transform 0.12s ease, background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .chip:hover { transform: translateY(-1px); border-color: rgba(244, 234, 217, 0.35); }
+  .chip.on { color: #0d1815; font-weight: 700; border-color: transparent; }
+  .cat[data-cat="base"] .chip.on { background: var(--c-base); box-shadow: 0 5px 16px -4px var(--c-base); }
+  .cat[data-cat="liqueur"] .chip.on { background: var(--c-liqueur); box-shadow: 0 5px 16px -4px var(--c-liqueur); }
+  .cat[data-cat="syrup"] .chip.on { background: var(--c-syrup); box-shadow: 0 5px 16px -4px var(--c-syrup); }
+  .cat[data-cat="mixer"] .chip.on { background: var(--c-mixer); box-shadow: 0 5px 16px -4px var(--c-mixer); }
+  .cat[data-cat="extra"] .chip.on { background: var(--c-extra); box-shadow: 0 5px 16px -4px var(--c-extra); }
+
+  .gen-wrap { margin: 20px 0 8px; }
+  .gen-btn {
+    width: 100%; font-family: inherit; cursor: pointer;
+    padding: 17px 0; border: none; border-radius: 16px;
+    font-size: 17px; font-weight: 800; letter-spacing: 2px;
+    color: #0d1815;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, #a9823f);
+    box-shadow: 0 12px 32px rgba(212, 175, 106, 0.32);
+    transition: transform 0.12s ease, box-shadow 0.25s ease;
+  }
+  .gen-btn:hover { box-shadow: 0 14px 40px rgba(212, 175, 106, 0.48); }
+  .gen-btn:active { transform: scale(0.98); }
+
+  .results { margin-top: 30px; }
+  .results-head { text-align: center; margin-bottom: 16px; }
+  .results-head h2 { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+  .results-head p { font-size: 13px; color: var(--soft); margin-top: 6px; }
+
+  .recipe-card {
+    position: relative; overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 22px 22px 18px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.32);
+    animation: fadeUp 0.5s both;
+  }
+  .recipe-card:nth-child(2) { animation-delay: 0.08s; }
+  .recipe-card:nth-child(3) { animation-delay: 0.16s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .r-num {
+    position: absolute; right: 16px; top: 6px;
+    font-size: 60px; font-weight: 900; line-height: 1;
+    color: rgba(212, 175, 106, 0.09);
+    pointer-events: none; user-select: none;
+  }
+
+  .badge {
+    position: absolute; top: 18px; right: 18px;
+    font-size: 12px; font-weight: 700;
+    padding: 6px 13px; border-radius: 999px;
+  }
+  .badge.ok { color: var(--ok); background: rgba(127, 206, 154, 0.13); border: 1px solid rgba(127, 206, 154, 0.42); }
+  .badge.no { color: var(--miss); background: rgba(232, 160, 90, 0.12); border: 1px solid rgba(232, 160, 90, 0.45); }
+
+  .recipe-card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+  .recipe-card::before {
+    content: ""; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: linear-gradient(180deg, var(--gold-light), var(--gold-deep));
+    opacity: 0.75;
+  }
+  .recipe-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212, 175, 106, 0.5);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(212, 175, 106, 0.12);
+  }
+  .badge.creative { color: var(--gold-light); background: rgba(212, 175, 106, 0.14); border: 1px solid rgba(212, 175, 106, 0.5); }
+  .badge.fav { color: #e88aa6; background: rgba(232, 138, 166, 0.12); border: 1px solid rgba(232, 138, 166, 0.45); }
+
+  .r-name { font-size: 23px; font-weight: 800; letter-spacing: 1px; padding-right: 130px; }
+  .r-en { font-family: var(--serif); font-size: 14px; color: var(--faint); margin-top: 3px; font-style: italic; letter-spacing: 0.5px; }
+
+  .r-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 11px; font-size: 12.5px; color: var(--soft); }
+  .r-meta .meta-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(244, 234, 217, 0.12);
+    border-radius: 8px; padding: 3px 10px;
+  }
+  .strength { display: inline-flex; align-items: center; gap: 5px; }
+  .strength .sd { width: 6px; height: 6px; border-radius: 50%; background: rgba(244, 234, 217, 0.18); }
+  .strength .sd.on { background: var(--gold); box-shadow: 0 0 6px rgba(212, 175, 106, 0.7); }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+  .tag {
+    font-size: 12px; font-weight: 600;
+    padding: 3.5px 12px; border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .r-desc { font-size: 13.5px; line-height: 1.75; color: var(--soft); margin-top: 13px; }
+
+  .r-section-t { font-size: 13px; font-weight: 700; color: var(--gold-light); margin: 16px 0 4px; letter-spacing: 1px; }
+
+  .ing-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 8px 0; border-bottom: 1px dashed rgba(244, 234, 217, 0.09);
+    font-size: 13.5px;
+  }
+  .ing-row:last-child { border-bottom: none; }
+  .ing-name { display: flex; align-items: center; gap: 8px; }
+  .ing-name .sdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .ing-row.have .sdot { background: var(--ok); }
+  .ing-row.miss .sdot { background: var(--miss); }
+  .ing-row.optional .ing-name > span:last-child { color: var(--faint); }
+  .ing-amount { color: var(--soft); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+  .ing-row.miss .ing-name { color: var(--miss); font-weight: 600; }
+  .ing-row.miss .ing-amount { color: rgba(232, 160, 90, 0.75); }
+  .sub-tip { display: block; font-size: 12px; color: var(--faint); margin: 2px 0 0 15px; line-height: 1.6; }
+
+  .steps { list-style: none; counter-reset: step; margin-top: 2px; }
+  .steps li {
+    counter-increment: step; position: relative;
+    font-size: 13.5px; line-height: 1.75; color: var(--soft);
+    padding: 6px 0 6px 34px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 7px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(212, 175, 106, 0.15); border: 1px solid rgba(212, 175, 106, 0.4);
+    color: var(--gold-light); font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .r-garnish {
+    margin-top: 14px; font-size: 12.5px; color: var(--faint);
+    padding-top: 12px; border-top: 1px solid rgba(244, 234, 217, 0.08);
+  }
+  .r-garnish b { color: var(--soft); font-weight: 600; }
+
+  .hint-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 11px 2px; border-bottom: 1px dashed rgba(244, 234, 217, 0.09);
+    font-size: 14px;
+  }
+  .hint-row:last-child { border-bottom: none; }
+  .hint-name { font-weight: 700; }
+  .hint-miss { color: var(--miss); font-size: 12.5px; text-align: right; line-height: 1.5; }
+
+  .photo-btn { color: var(--gold-light); border-color: rgba(212, 175, 106, 0.45); background: rgba(212, 175, 106, 0.08); }
+  .album-btn { color: var(--gold-light); border-color: rgba(212, 175, 106, 0.3); }
+  .chip.add { border-style: dashed; color: var(--gold-light); }
+  .chip.custom .chip-x { margin-left: 7px; opacity: 0.55; font-weight: 700; }
+  .chip.custom .chip-x:hover { opacity: 1; }
+  .chip-form { display: inline-flex; gap: 6px; align-items: center; }
+  .chip-form input {
+    font-family: inherit; font-size: 13px; color: var(--text);
+    background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(212, 175, 106, 0.55);
+    border-radius: 999px; padding: 8px 14px; outline: none; width: 150px;
+  }
+  .chip-form button { font-family: inherit; cursor: pointer; border-radius: 999px; padding: 8px 13px; font-size: 13px; border: none; line-height: 1; }
+  .chip-form .ok { background: var(--gold); color: #0d1815; font-weight: 700; }
+  .chip-form .cancel { background: rgba(255, 255, 255, 0.08); color: var(--soft); }
+
+  .ocr-bar {
+    margin-top: 18px; background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 16px;
+  }
+  .ocr-bar .t { font-size: 13px; color: var(--gold-light); margin-bottom: 8px; }
+  .ocr-track { height: 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .ocr-track i {
+    display: block; height: 100%; width: 0; border-radius: 6px;
+    background: linear-gradient(90deg, var(--gold-light), var(--gold)); transition: width 0.25s;
+  }
+
+  .modal {
+    position: fixed; inset: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(4, 10, 9, 0.68); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .modal[hidden] { display: none; }
+  .modal-card {
+    width: 100%; max-width: 460px; max-height: 82vh; overflow-y: auto;
+    background: #0e201c; border: 1px solid var(--card-border);
+    border-radius: 20px; padding: 22px 20px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  }
+  .modal-card h3 { font-size: 17px; color: var(--gold-light); }
+  .modal-sub { font-size: 12.5px; color: var(--soft); margin: 8px 0 14px; line-height: 1.7; }
+  .modal-row { display: flex; gap: 8px; align-items: center; margin-bottom: 9px; }
+  .modal-row input[type="text"] {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 13px; color: var(--text);
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(244, 234, 217, 0.2);
+    border-radius: 10px; padding: 9px 10px;
+  }
+  .modal-row select {
+    font-family: inherit; font-size: 12px; color: var(--text);
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(244, 234, 217, 0.2);
+    border-radius: 10px; padding: 9px 6px; flex-shrink: 0;
+  }
+  .modal-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--gold); flex-shrink: 0; cursor: pointer; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-actions button {
+    flex: 1; padding: 12px 0; border-radius: 12px; font-family: inherit;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .modal-ok { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #0d1815; border: none; }
+  .modal-cancel { background: rgba(255, 255, 255, 0.06); color: var(--soft); border: 1px solid rgba(244, 234, 217, 0.18); }
+
+  .shuffle-wrap { text-align: center; margin-top: 4px; }
+  .shuffle-btn {
+    font-family: inherit; font-size: 13.5px; cursor: pointer;
+    color: var(--gold-light); background: rgba(212, 175, 106, 0.1);
+    border: 1px solid rgba(212, 175, 106, 0.4);
+    border-radius: 999px; padding: 10px 26px; transition: 0.2s;
+  }
+  .shuffle-btn:hover { background: rgba(212, 175, 106, 0.2); }
+
+  .toast {
+    position: fixed; bottom: 34px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #122923; color: var(--gold-light);
+    border: 1px solid rgba(212, 175, 106, 0.4);
+    padding: 12px 24px; border-radius: 14px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 99; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  footer { text-align: center; margin-top: 40px; font-size: 12px; color: var(--faint); line-height: 1.8; }
+
+  /* ---------- 搜索栏 ---------- */
+  .inv-toolbar { display: flex; gap: 9px; margin-top: 14px; }
+  .search-box {
+    position: relative; flex: 1; min-width: 0;
+  }
+  .search-box .ico {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    font-size: 13px; color: var(--faint); pointer-events: none;
+  }
+  .search-box input {
+    width: 100%; font-family: inherit; font-size: 13.5px; color: var(--text);
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(242, 237, 225, 0.16);
+    border-radius: 999px; padding: 10px 36px 10px 34px; outline: none; transition: 0.2s;
+  }
+  .search-box input:focus { border-color: rgba(212, 175, 106, 0.6); background: rgba(212, 175, 106, 0.06); }
+  .search-box input::placeholder { color: var(--faint); }
+  .search-clear {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(242, 237, 225, 0.12); color: var(--soft); font-size: 12px; line-height: 1;
+    display: none; align-items: center; justify-content: center;
+  }
+  .search-clear.show { display: flex; }
+  .fav-entry {
+    flex-shrink: 0; font-family: inherit; font-size: 13px; cursor: pointer;
+    color: var(--gold-light); background: rgba(212, 175, 106, 0.08);
+    border: 1px solid rgba(212, 175, 106, 0.32); border-radius: 999px; padding: 0 16px;
+    transition: 0.2s; white-space: nowrap;
+  }
+  .fav-entry:hover { background: rgba(212, 175, 106, 0.18); }
+  .fav-entry b { color: var(--gold); }
+  .search-empty { display: none; font-size: 13px; color: var(--faint); padding: 6px 2px 0; }
+
+  /* ---------- 分类折叠 ---------- */
+  .cat-title { cursor: pointer; user-select: none; }
+  .cat-title .chev {
+    margin-left: auto; color: var(--faint); font-size: 11px;
+    transition: transform 0.25s;
+  }
+  .cat.collapsed .chev { transform: rotate(-90deg); }
+  .cat.collapsed .chips, .cat.collapsed .cat-hint { display: none; }
+
+  .chip { min-height: 36px; }
+  .chip.flash { animation: chipFlash 1.1s ease; }
+  @keyframes chipFlash {
+    0%, 70% { box-shadow: 0 0 0 0 rgba(212, 175, 106, 0.55); }
+    100% { box-shadow: 0 0 0 12px rgba(212, 175, 106, 0); }
+  }
+
+  /* ---------- 卡片：杯数 / 操作 / 步骤勾选 ---------- */
+  .r-section-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 16px 0 4px; }
+  .r-section-row .r-section-t { margin: 0; }
+  .servings { display: inline-flex; align-items: center; gap: 8px; }
+  .servings button {
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    font-family: inherit; font-size: 15px; line-height: 1; font-weight: 700;
+    color: var(--gold-light); background: rgba(212, 175, 106, 0.1);
+    border: 1px solid rgba(212, 175, 106, 0.4); transition: 0.15s;
+  }
+  .servings button:hover { background: rgba(212, 175, 106, 0.22); }
+  .servings button:disabled { opacity: 0.3; cursor: default; }
+  .servings .sv-num { min-width: 44px; text-align: center; font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .servings .sv-num b { color: var(--gold-light); font-size: 15px; }
+
+  .steps li { cursor: pointer; border-radius: 8px; transition: color 0.2s; }
+  .steps li:hover { color: var(--text); }
+  .steps li.done { color: var(--faint); text-decoration: line-through; text-decoration-color: rgba(212, 175, 106, 0.5); }
+  .steps li.done::before { content: "✓"; background: rgba(212, 175, 106, 0.28); color: var(--gold-light); }
+
+  .r-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(242, 237, 225, 0.08); }
+  .act-btn {
+    font-family: inherit; font-size: 12.5px; cursor: pointer;
+    color: var(--soft); background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(242, 237, 225, 0.16); border-radius: 999px;
+    padding: 8px 16px; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .act-btn:hover { color: var(--text); border-color: rgba(212, 175, 106, 0.5); background: rgba(212, 175, 106, 0.08); }
+  .act-btn.faved { color: #e88aa6; border-color: rgba(232, 138, 166, 0.5); background: rgba(232, 138, 166, 0.1); }
+  .step-progress { font-size: 11.5px; color: var(--faint); margin-left: auto; align-self: center; }
+
+  /* ---------- 我的收藏 ---------- */
+  .fav-section { margin-top: 30px; }
+  .fav-empty {
+    text-align: center; font-size: 13.5px; color: var(--faint); line-height: 1.9;
+    border: 1px dashed rgba(212, 175, 106, 0.3); border-radius: 18px; padding: 34px 20px;
+  }
+
+  /* ---------- 吸底操作栏 ---------- */
+  .dock {
+    position: fixed; left: 50%; bottom: 14px; transform: translate(-50%, 90px);
+    width: calc(100% - 28px); max-width: 748px; z-index: 80;
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(12, 28, 24, 0.86);
+    border: 1px solid rgba(212, 175, 106, 0.32);
+    border-radius: 18px; padding: 10px 12px 10px 18px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+  }
+  .dock.show {
+    transform: translate(-50%, 0);
+    transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .dock .dock-info { font-size: 13px; color: var(--soft); white-space: nowrap; }
+  .dock .dock-info b { color: var(--gold-light); font-size: 16px; }
+  .dock .dock-btn {
+    flex: 1; font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 1.5px;
+    color: #0d1815; cursor: pointer; border: none; border-radius: 12px; padding: 13px 0;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, var(--gold-deep));
+    box-shadow: 0 8px 22px rgba(212, 175, 106, 0.3);
+  }
+  .dock .dock-btn:active { transform: scale(0.98); }
+  .dock .dock-up {
+    width: 42px; height: 42px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
+    color: var(--gold-light); background: rgba(212, 175, 106, 0.1);
+    border: 1px solid rgba(212, 175, 106, 0.35); font-size: 16px;
+  }
+
+  /* ---------- 分享图模态 ---------- */
+  .share-card {
+    max-width: 520px; text-align: center; background: #0e201c;
+    display: flex; flex-direction: column; max-height: 90vh;
+  }
+  .share-card h3 { flex: 0 0 auto; }
+  .share-card img {
+    flex: 0 1 auto; min-height: 0;
+    width: auto; height: auto; max-width: 100%;
+    max-height: calc(90vh - 196px);
+    margin: 0 auto 14px;
+    border-radius: 14px; border: 1px solid var(--card-border);
+    object-fit: contain;
+  }
+  .share-tip { flex: 0 0 auto; font-size: 12px; color: var(--faint); margin-bottom: 14px; line-height: 1.7; }
+  .share-actions { flex: 0 0 auto; display: flex; gap: 10px; }
+  .share-actions button {
+    flex: 1; padding: 12px 0; border-radius: 12px; font-family: inherit;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .share-actions .modal-ok { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #0d1815; border: none; }
+  .share-actions .modal-cancel { background: rgba(255, 255, 255, 0.06); color: var(--soft); border: 1px solid rgba(242, 237, 225, 0.18); }
+
+  @media (max-width: 560px) {
+    body { padding: 26px 12px 92px; }
+    header h1 { font-size: 27px; letter-spacing: 2px; }
+    .panel { padding: 18px 15px; border-radius: 18px; }
+    .panel-head h2 { font-size: 16px; }
+    .mini-btn { padding: 8px 12px; font-size: 12px; }
+    .inv-count { width: 100%; text-align: right; order: 3; }
+    .recipe-card { padding: 20px 17px 16px; }
+    .r-name { font-size: 20px; padding-right: 96px; }
+    .badge { font-size: 11px; padding: 5px 10px; top: 15px; right: 15px; }
+    .r-num { font-size: 46px; }
+    .gen-btn { padding: 16px 0; font-size: 16px; }
+    .dock { bottom: 10px; width: calc(100% - 20px); }
+    .dock .dock-info { font-size: 12px; }
+    .share-card { max-height: 92vh; padding: 18px 16px; }
+    .share-card img { max-height: calc(92vh - 182px); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>家庭调酒台</h1>
+    <p>勾选家里现有的基酒、利口酒、糖浆、软饮与新鲜配料<br>为你匹配今晚就能调的鸡尾酒，标注每款的风味</p>
+    <div class="rule"></div>
+    <button class="site-share-btn" id="siteShareBtn" type="button">📲 分享给酒友 · 扫码进入</button>
+  </header>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>我的酒柜</h2>
+      <div class="panel-actions">
+        <button class="mini-btn photo-btn" id="photoBtn">📷 拍照识别</button>
+        <button class="mini-btn album-btn" id="albumBtn">🖼️ 从相册选择</button>
+        <button class="mini-btn" id="demoBtn">一键填入常见酒柜</button>
+        <button class="mini-btn" id="clearBtn">清空</button>
+        <span class="inv-count">已选 <b id="invCount">0</b> 样</span>
+      </div>
+    </div>
+    <div class="inv-toolbar">
+      <div class="search-box">
+        <span class="ico">🔍</span>
+        <input type="text" id="invSearch" placeholder="搜索原料，如：金酒、薄荷、可乐…" autocomplete="off">
+        <button class="search-clear" id="searchClear" type="button">×</button>
+      </div>
+      <button class="fav-entry" id="favEntry" type="button">♥ 我的收藏 <b id="favCount">0</b></button>
+    </div>
+    <div id="catList"></div>
+    <div class="search-empty" id="searchEmpty">没有匹配的原料，可在对应分类点「＋ 添加」手动加入</div>
+    <div class="ocr-bar" id="ocrBar" hidden>
+      <div class="t" id="ocrText">正在识别…</div>
+      <div class="ocr-track"><i id="ocrFill"></i></div>
+    </div>
+    <input type="file" id="photoInputCamera" accept="image/*" capture="environment" hidden>
+    <input type="file" id="photoInputAlbum" accept="image/*" hidden>
+  </section>
+
+  <div class="gen-wrap">
+    <button class="gen-btn" id="genBtn">生成今晚的酒单</button>
+  </div>
+
+  <section class="results" id="results" hidden>
+    <div class="results-head">
+      <h2 id="resultTitle"></h2>
+      <p id="resultSub"></p>
+    </div>
+    <div id="recipeCards"></div>
+    <div class="shuffle-wrap">
+      <button class="shuffle-btn" id="shuffleBtn">换一批推荐</button>
+    </div>
+  </section>
+
+  <section class="fav-section panel" id="favSection" hidden>
+    <div class="panel-head">
+      <h2>♥ 我的收藏</h2>
+      <div class="panel-actions">
+        <button class="mini-btn" id="favClose" type="button">收起</button>
+      </div>
+    </div>
+    <div id="favList" style="margin-top:14px"></div>
+  </section>
+
+  <footer>
+    配方用量为经典比例，可按个人口味微调酸甜与酒感<br>
+    理性饮酒 · 未成年人请勿饮酒 · 酒后请勿驾车
+  </footer>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card">
+    <h3>识别到几种清单外的酒</h3>
+    <p class="modal-sub" id="modalIntro"></p>
+    <div id="modalRows"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modalCancel">不添加</button>
+      <button class="modal-ok" id="modalOk">添加选中的酒</button>
+    </div>
+  </div>
+</div>
+
+<div class="dock" id="dock">
+  <span class="dock-info">已选 <b id="dockCount">0</b> 样</span>
+  <button class="dock-btn" id="dockGen" type="button">生成今晚的酒单</button>
+  <button class="dock-up" id="dockUp" type="button" title="回到酒柜">↑</button>
+</div>
+
+<div class="modal" id="shareModal" hidden>
+  <div class="modal-card share-card">
+    <h3 id="shareTitle" style="margin-bottom:12px">分享这杯酒</h3>
+    <img id="shareImg" alt="配方分享图">
+    <p class="share-tip">点「复制图片」后可直接粘贴到聊天框；手机长按图片也可保存到相册，电脑端右键即可另存</p>
+    <div class="share-actions">
+      <button class="modal-cancel" id="shareCopy" type="button">复制文字版</button>
+      <button class="modal-ok" id="shareDone" type="button">复制图片</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* qrcode-generator v1.4.4 | (c) Kazuhiko Arase | MIT | https://github.com/kazuhikoarase/qrcode-generator */
+/**
+ * Minified by jsDelivr using Terser v5.37.0.
+ * Original file: /npm/qrcode-generator@1.4.4/qrcode.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));
+//# sourceMappingURL=/sm/26b4b0d0b1e283d6b3ec9857ac597d7a60c76ac17be1ef4c965f03086de426bb.map
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "home-bar-v1";
+
+  var CATS = [
+    {
+      id: "base", name: "基酒", hint: "烈酒底子，决定酒感",
+      items: [
+        ["vodka", "伏特加"], ["gin", "金酒"], ["white_rum", "白朗姆酒"],
+        ["dark_rum", "黑朗姆酒"], ["tequila", "龙舌兰"], ["whiskey", "威士忌"],
+        ["brandy", "白兰地"], ["baijiu", "白酒"], ["wine", "葡萄酒"],
+        ["prosecco", "起泡葡萄酒"]
+      ]
+    },
+    {
+      id: "liqueur", name: "利口酒", hint: "负责风味与甜香",
+      items: [
+        ["cointreau", "橙味利口酒（君度）"], ["campari", "金巴利"],
+        ["aperol", "阿佩罗"], ["sweet_vermouth", "甜苦艾酒"],
+        ["dry_vermouth", "干苦艾酒"], ["kahlua", "咖啡利口酒"],
+        ["baileys", "奶油利口酒（百利甜）"], ["malibu", "椰子利口酒"],
+        ["peach", "水蜜桃利口酒"], ["amaretto", "杏仁利口酒"],
+        ["blue_curacao", "蓝橙利口酒"]
+      ]
+    },
+    {
+      id: "syrup", name: "糖浆 / 甜味", hint: "平衡酸甜的关键",
+      items: [
+        ["simple", "单糖浆"], ["grenadine", "红石榴糖浆"], ["honey", "蜂蜜"],
+        ["elderflower", "接骨木花风味糖浆"], ["passionfruit", "百香果风味糖浆"]
+      ]
+    },
+    {
+      id: "mixer", name: "果汁 · 软饮", hint: "调配口感与气泡",
+      items: [
+        ["lemon", "柠檬汁"], ["lime", "青柠汁"], ["orange", "橙汁"],
+        ["cranberry", "蔓越莓汁"], ["pineapple", "菠萝汁"],
+        ["grapefruit", "西柚汁"], ["cola", "可乐"], ["ginger_ale", "干姜水"],
+        ["tonic", "汤力水"], ["soda", "苏打水"], ["coconut", "椰奶"],
+        ["cream", "淡奶油 / 牛奶"]
+      ]
+    },
+    {
+      id: "extra", name: "新鲜配料", hint: "提香装饰",
+      items: [
+        ["mint", "新鲜薄荷叶"], ["lemon_fresh", "新鲜柠檬（果片 / 果皮）"]
+      ]
+    }
+  ];
+
+  var NAME = {};
+  CATS.forEach(function (c) {
+    c.items.forEach(function (it) { NAME[it[0]] = it[1]; });
+  });
+
+  var TAG_COLORS = {
+    "清爽": "#5fd0c4", "薄荷": "#8fe0b0", "酸甜": "#e8c35a", "果香": "#f0935a",
+    "甜润": "#ef8fb0", "苦甜": "#e06a5a", "草本": "#7cc27a", "浓郁": "#b08ce0",
+    "气泡": "#7ab8e8", "咖啡": "#c49a6c", "奶香": "#ecd9b8", "莓果": "#e06aa8",
+    "椰香": "#d8c08a", "坚果": "#d09a5b", "干冽": "#9fb0c3", "微酸": "#c7d67a",
+    "辛香": "#d97a4e", "花香": "#d3a7e8"
+  };
+
+  var SUBSTITUTE = {
+    simple: "没有单糖浆？用等量白糖加少许温水搅化即可代替",
+    soda: "可用原味气泡水或雪碧代替（雪碧更甜，糖浆减量）",
+    tonic: "可用苏打水加柠檬片代替，风味更干净、少一份微苦",
+    grenadine: "可用红糖水或覆盆子糖浆代替，调色又增甜",
+    lime: "可用柠檬汁代替，青柠的清冽香气会略减",
+    lemon: "可用青柠汁代替，用量酌减",
+    mint: "没有新鲜薄荷可省略，风味少一分清凉但不影响主体",
+    cola: "任意品牌可乐型汽水均可",
+    coconut: "可用椰汁加少量淡奶油调浓代替",
+    cream: "可用牛奶或椰奶代替，口感更清爽",
+    sweet_vermouth: "可用干苦艾酒加少许红石榴糖浆应急",
+    cointreau: "可用其他橙味利口酒（如蓝橙酒无色版）代替",
+    honey: "可用单糖浆代替，少一层蜂蜜花香",
+    ginger_ale: "可用苏打水加少许糖浆与姜汁代替"
+  };
+
+  var STRENGTH = ["无酒精 · 畅饮", "低度 · 小酌", "中度 · 微醺", "高度 · 浓烈"];
+
+  function R(o) { return o; }
+
+  var RECIPES = [
+    R({
+      id: "mojito", name: "莫吉托", en: "Mojito", pop: 10,
+      glass: "高球杯", method: "捣压 · 兑和", strength: 1,
+      tags: ["清爽", "薄荷", "酸甜"],
+      desc: "青柠与薄荷捣出清香，苏打水带来满口清凉，夏夜露台的标配。",
+      ingredients: [
+        { item: "white_rum", amount: "45ml" },
+        { item: "lime", amount: "20ml（约半个）" },
+        { item: "simple", amount: "15ml" },
+        { item: "mint", amount: "8–10 片" },
+        { item: "soda", amount: "补满（约60ml）" }
+      ],
+      garnish: "薄荷嫩枝 + 青柠角",
+      steps: [
+        "薄荷叶、青柠汁与单糖浆放入杯底，轻轻捣压出香（别捣烂薄荷茎，会发苦）",
+        "杯中加满碎冰，倒入白朗姆酒，用吧勺轻轻提拉",
+        "补满苏打水，点缀薄荷嫩枝与青柠角，插吸管即可"
+      ]
+    }),
+    R({
+      id: "margarita", name: "玛格丽特", en: "Margarita", pop: 9,
+      glass: "玛格丽特杯", method: "摇和", strength: 2,
+      tags: ["酸甜", "清爽", "果香"],
+      desc: "龙舌兰的野性配青柠的酸与橙酒的香，盐边让整杯风味更立体。",
+      ingredients: [
+        { item: "tequila", amount: "40ml" },
+        { item: "cointreau", amount: "20ml" },
+        { item: "lime", amount: "20ml" },
+        { item: "simple", amount: "5ml", optional: true }
+      ],
+      garnish: "盐边 + 青柠轮",
+      steps: [
+        "杯口用青柠抹湿，蘸一圈细盐做盐边",
+        "摇酒壶加冰，倒入龙舌兰、橙味利口酒与青柠汁，摇至冰透",
+        "滤入玛格丽特杯（可加冰），饰青柠轮"
+      ]
+    }),
+    R({
+      id: "gin_tonic", name: "金汤力", en: "Gin Tonic", pop: 9,
+      glass: "高球杯", method: "兑和", strength: 2,
+      tags: ["草本", "气泡", "苦甜"],
+      desc: "金酒的杜松草本香遇上汤力水的微苦气泡，越简单越考验酒。",
+      ingredients: [
+        { item: "gin", amount: "45ml" },
+        { item: "tonic", amount: "120ml" }
+      ],
+      garnish: "青柠角",
+      steps: [
+        "高球杯加满冰块，稍微搅拌冰杯",
+        "倒入金酒，再注满冰镇汤力水",
+        "用吧勺轻轻提拉即可（有青柠可挤一角增香）"
+      ]
+    }),
+    R({
+      id: "long_island", name: "长岛冰茶", en: "Long Island Iced Tea", pop: 9,
+      glass: "高球杯", method: "摇和 · 兑和", strength: 3,
+      tags: ["浓郁", "甜润", "气泡"],
+      desc: "五种基酒伪装成冰茶，入口柔顺清甜，后劲十足，务必慢饮。",
+      ingredients: [
+        { item: "vodka", amount: "15ml" },
+        { item: "gin", amount: "15ml" },
+        { item: "white_rum", amount: "15ml" },
+        { item: "tequila", amount: "15ml" },
+        { item: "cointreau", amount: "15ml" },
+        { item: "lemon", amount: "30ml" },
+        { item: "simple", amount: "10ml" },
+        { item: "cola", amount: "30ml（浮色）" }
+      ],
+      garnish: "柠檬片",
+      steps: [
+        "除可乐外所有材料加冰摇匀，倒入加满冰的高球杯",
+        "顶部缓缓淋入可乐，形成红茶般的色泽",
+        "轻轻搅一下即可"
+      ]
+    }),
+    R({
+      id: "cuba_libre", name: "自由古巴", en: "Cuba Libre", pop: 8,
+      glass: "高球杯", method: "兑和", strength: 1,
+      tags: ["甜润", "气泡", "微酸"],
+      desc: "黑朗姆的焦糖香撞上可乐气泡，青柠点睛，零失败的入门款。",
+      ingredients: [
+        { item: "dark_rum", amount: "50ml" },
+        { item: "cola", amount: "120ml" },
+        { item: "lime", amount: "15ml" }
+      ],
+      garnish: "青柠角",
+      steps: [
+        "高球杯加满冰块",
+        "倒入黑朗姆与青柠汁",
+        "注满可乐，轻轻提拉，饰青柠角"
+      ]
+    }),
+    R({
+      id: "tequila_sunrise", name: "龙舌兰日出", en: "Tequila Sunrise", pop: 8,
+      glass: "高球杯", method: "兑和", strength: 1,
+      tags: ["果香", "甜润"],
+      desc: "橙汁的甜润托住龙舌兰，红石榴糖浆沉入杯底，晕出日出渐变。",
+      ingredients: [
+        { item: "tequila", amount: "45ml" },
+        { item: "orange", amount: "90ml" },
+        { item: "grenadine", amount: "15ml" }
+      ],
+      garnish: "橙片 + 樱桃",
+      steps: [
+        "高球杯加冰，倒入龙舌兰与橙汁，轻轻搅匀",
+        "沿杯壁或吧勺背缓缓倒入红石榴糖浆，使其沉入杯底",
+        "不要搅拌，保持渐变层次即可"
+      ]
+    }),
+    R({
+      id: "whiskey_sour", name: "威士忌酸", en: "Whiskey Sour", pop: 8,
+      glass: "古典杯", method: "摇和", strength: 2,
+      tags: ["酸甜", "浓郁"],
+      desc: "威士忌的橡木香裹着柠檬的明亮酸甜，酸酒家族的经典。",
+      ingredients: [
+        { item: "whiskey", amount: "45ml" },
+        { item: "lemon", amount: "30ml" },
+        { item: "simple", amount: "15ml" }
+      ],
+      garnish: "橙片 + 樱桃",
+      steps: [
+        "摇酒壶加冰，倒入威士忌、柠檬汁与单糖浆",
+        "用力摇 12 秒至壶身结霜",
+        "滤入加冰古典杯即可"
+      ]
+    }),
+    R({
+      id: "old_fashioned", name: "古典", en: "Old Fashioned", pop: 8,
+      glass: "古典杯", method: "搅拌", strength: 3,
+      tags: ["浓郁", "苦甜"],
+      desc: "糖与苦精（可选）引出威士忌最深的橡木与焦糖香，老成持重。",
+      ingredients: [
+        { item: "whiskey", amount: "45ml" },
+        { item: "simple", amount: "10ml" }
+      ],
+      garnish: "橙皮拧香",
+      steps: [
+        "杯中加入单糖浆（有安哥斯图拉苦精可加 2 滴）和少许水，搅化",
+        "加入威士忌与一块大方冰，搅拌约 30 秒至冰透",
+        "有橙皮可拧入精油抹杯口增香，没有也完全不影响"
+      ]
+    }),
+    R({
+      id: "pina_colada", name: "椰林飘香", en: "Piña Colada", pop: 8,
+      glass: "飓风杯", method: "摇和", strength: 1,
+      tags: ["椰香", "果香", "甜润"],
+      desc: "椰奶与菠萝的热带漩涡裹着朗姆酒，像把假期喝进嘴里。",
+      ingredients: [
+        { item: "white_rum", amount: "50ml" },
+        { item: "coconut", amount: "60ml" },
+        { item: "pineapple", amount: "90ml" },
+        { item: "malibu", amount: "20ml", optional: true }
+      ],
+      garnish: "菠萝角 + 樱桃",
+      steps: [
+        "所有材料加冰摇匀（家用搅拌机打 15 秒更绵密）",
+        "倒入冰镇飓风杯，可补少许碎冰",
+        "插入长勺或吸管即可"
+      ]
+    }),
+    R({
+      id: "aperol_spritz", name: "阿佩罗橙光", en: "Aperol Spritz", pop: 8,
+      glass: "葡萄酒杯", method: "兑和", strength: 1,
+      tags: ["苦甜", "气泡", "果香"],
+      desc: "阿佩罗的橙香微苦配上起泡酒的欢腾气泡，午后开胃的第一眼橙光。",
+      ingredients: [
+        { item: "aperol", amount: "45ml" },
+        { item: "prosecco", amount: "60ml" },
+        { item: "soda", amount: "30ml" }
+      ],
+      garnish: "橙片",
+      steps: [
+        "大葡萄酒杯加满冰块",
+        "依次倒入阿佩罗、起泡葡萄酒",
+        "补少许苏打水，轻轻搅一圈即可"
+      ]
+    }),
+    R({
+      id: "cosmo", name: "大都会", en: "Cosmopolitan", pop: 7,
+      glass: "马天尼杯", method: "摇和", strength: 2,
+      tags: ["酸甜", "莓果", "果香"],
+      desc: "蔓越莓的粉红酸甜配橙酒清香，都市感十足的一杯。",
+      ingredients: [
+        { item: "vodka", amount: "40ml" },
+        { item: "cointreau", amount: "15ml" },
+        { item: "cranberry", amount: "30ml" },
+        { item: "lime", amount: "10ml" }
+      ],
+      garnish: "柠檬皮 / 橙皮",
+      steps: [
+        "所有材料加冰，摇匀至壶身结霜",
+        "双重过滤滤入冰镇马天尼杯即可"
+      ]
+    }),
+    R({
+      id: "screwdriver", name: "螺丝起子", en: "Screwdriver", pop: 7,
+      glass: "高球杯", method: "兑和", strength: 1,
+      tags: ["果香", "甜润"],
+      desc: "伏特加藏身于橙汁之中，顺口到不知不觉，小心微醺。",
+      ingredients: [
+        { item: "vodka", amount: "45ml" },
+        { item: "orange", amount: "100ml" }
+      ],
+      garnish: "橙片",
+      steps: [
+        "高球杯加满冰块",
+        "倒入伏特加，注满鲜橙汁，轻轻搅匀即可"
+      ]
+    }),
+    R({
+      id: "moscow_mule", name: "莫斯科骡子", en: "Moscow Mule", pop: 7,
+      glass: "铜杯 / 高球杯", method: "兑和", strength: 2,
+      tags: ["气泡", "辛香", "清爽"],
+      desc: "干姜水的辛甜气泡配伏特加与青柠，铜杯里的冰凉刺激。",
+      ingredients: [
+        { item: "vodka", amount: "45ml" },
+        { item: "lime", amount: "15ml" },
+        { item: "ginger_ale", amount: "120ml" }
+      ],
+      garnish: "青柠角 + 薄荷",
+      steps: [
+        "铜杯（或高球杯）加满冰块",
+        "倒入伏特加与青柠汁",
+        "注满干姜水轻搅，饰青柠角"
+      ]
+    }),
+    R({
+      id: "negroni", name: "内格罗尼", en: "Negroni", pop: 7,
+      glass: "古典杯", method: "搅拌", strength: 3,
+      tags: ["苦甜", "草本", "浓郁"],
+      desc: "金酒、金巴利、甜苦艾三等分，苦甜草本，属于大人的味道。",
+      ingredients: [
+        { item: "gin", amount: "30ml" },
+        { item: "campari", amount: "30ml" },
+        { item: "sweet_vermouth", amount: "30ml" }
+      ],
+      garnish: "橙皮",
+      steps: [
+        "调酒杯加冰，倒入三种酒",
+        "搅拌约 30 秒至充分冰镇",
+        "滤入加冰古典杯即可"
+      ]
+    }),
+    R({
+      id: "martini", name: "干马提尼", en: "Dry Martini", pop: 7,
+      glass: "马天尼杯", method: "搅拌", strength: 3,
+      tags: ["干冽", "草本", "浓郁"],
+      desc: "金酒与干苦艾的冷冽结合，被誉为鸡尾酒之王。",
+      ingredients: [
+        { item: "gin", amount: "60ml" },
+        { item: "dry_vermouth", amount: "10ml" }
+      ],
+      garnish: "橄榄 / 柠檬皮",
+      steps: [
+        "调酒杯加冰，倒入金酒与干苦艾",
+        "搅拌 30 秒以上至冰透",
+        "滤入冰镇马天尼杯即可"
+      ]
+    }),
+    R({
+      id: "sex_beach", name: "性感海滩", en: "Sex on the Beach", pop: 7,
+      glass: "高球杯", method: "兑和", strength: 1,
+      tags: ["果香", "甜润", "莓果"],
+      desc: "蜜桃利口酒与橙汁、蔓越莓汁交织，度假风的热带甜。",
+      ingredients: [
+        { item: "vodka", amount: "40ml" },
+        { item: "peach", amount: "20ml" },
+        { item: "orange", amount: "60ml" },
+        { item: "cranberry", amount: "60ml" }
+      ],
+      garnish: "橙片",
+      steps: [
+        "高球杯加冰，倒入伏特加与水蜜桃利口酒",
+        "加入橙汁与蔓越莓汁",
+        "轻轻搅匀即可"
+      ]
+    }),
+    R({
+      id: "daiquiri", name: "黛克瑞", en: "Daiquiri", pop: 7,
+      glass: "马天尼杯", method: "摇和", strength: 2,
+      tags: ["酸甜", "清爽"],
+      desc: "白朗姆、青柠、糖——最简公式，海明威的最爱。",
+      ingredients: [
+        { item: "white_rum", amount: "45ml" },
+        { item: "lime", amount: "20ml" },
+        { item: "simple", amount: "10ml" }
+      ],
+      garnish: "青柠轮",
+      steps: [
+        "摇酒壶加冰，倒入所有材料",
+        "用力摇匀至壶身结霜",
+        "滤入冰镇马天尼杯，饰青柠轮"
+      ]
+    }),
+    R({
+      id: "french75", name: "法国 75", en: "French 75", pop: 6,
+      glass: "香槟杯", method: "摇和 · 兑和", strength: 2,
+      tags: ["酸甜", "气泡", "清爽"],
+      desc: "金酒酸打底，浇上冰凉起泡酒，优雅却有野战炮般的杀伤力。",
+      ingredients: [
+        { item: "gin", amount: "30ml" },
+        { item: "lemon", amount: "15ml" },
+        { item: "simple", amount: "10ml" },
+        { item: "prosecco", amount: "60ml" }
+      ],
+      garnish: "柠檬皮",
+      steps: [
+        "金酒、柠檬汁、单糖浆加冰摇匀",
+        "滤入香槟杯",
+        "缓缓注满冰镇起泡酒即可"
+      ]
+    }),
+    R({
+      id: "blue_lagoon", name: "蓝色潟湖", en: "Blue Lagoon", pop: 6,
+      glass: "高球杯", method: "摇和 · 兑和", strength: 2,
+      tags: ["果香", "气泡", "清爽"],
+      desc: "蓝橙酒调出透亮的蓝，柠檬与气泡让它像海风一样清爽。",
+      ingredients: [
+        { item: "vodka", amount: "40ml" },
+        { item: "blue_curacao", amount: "20ml" },
+        { item: "lemon", amount: "20ml" },
+        { item: "soda", amount: "60ml" }
+      ],
+      garnish: "柠檬片 + 樱桃",
+      steps: [
+        "伏特加、蓝橙利口酒、柠檬汁加冰摇匀",
+        "滤入加满冰的高球杯",
+        "补满苏打水，轻搅均匀即可"
+      ]
+    }),
+    R({
+      id: "tom_collins", name: "汤姆柯林斯", en: "Tom Collins", pop: 6,
+      glass: "柯林杯", method: "摇和 · 兑和", strength: 2,
+      tags: ["气泡", "酸甜", "清爽"],
+      desc: "柠檬与糖浆摇出金酒酸，再被苏打水点亮成一大杯清凉。",
+      ingredients: [
+        { item: "gin", amount: "45ml" },
+        { item: "lemon", amount: "30ml" },
+        { item: "simple", amount: "15ml" },
+        { item: "soda", amount: "60ml" }
+      ],
+      garnish: "柠檬片",
+      steps: [
+        "金酒、柠檬汁、单糖浆加冰摇匀",
+        "滤入加满冰的柯林杯",
+        "补满苏打水，轻搅均匀即可"
+      ]
+    }),
+    R({
+      id: "vodka_tonic", name: "伏特加汤力", en: "Vodka Tonic", pop: 6,
+      glass: "高球杯", method: "兑和", strength: 2,
+      tags: ["气泡", "干冽"],
+      desc: "干净利落的一杯，伏特加的冷峻配汤力的微苦，挤青柠更鲜活。",
+      ingredients: [
+        { item: "vodka", amount: "45ml" },
+        { item: "tonic", amount: "120ml" }
+      ],
+      garnish: "青柠角",
+      steps: [
+        "高球杯加满冰",
+        "倒入伏特加，注满汤力水",
+        "轻轻提拉即可（有青柠可挤一角增香）"
+      ]
+    }),
+    R({
+      id: "black_russian", name: "黑色俄罗斯", en: "Black Russian", pop: 6,
+      glass: "古典杯", method: "兑和", strength: 3,
+      tags: ["咖啡", "甜润", "浓郁"],
+      desc: "咖啡利口酒让伏特加变得深邃，微甜的一杯晚安酒。",
+      ingredients: [
+        { item: "vodka", amount: "50ml" },
+        { item: "kahlua", amount: "20ml" }
+      ],
+      garnish: "无需装饰",
+      steps: [
+        "古典杯加冰",
+        "倒入伏特加与咖啡利口酒",
+        "轻轻搅匀即可"
+      ]
+    }),
+    R({
+      id: "white_russian", name: "白色俄罗斯", en: "White Russian", pop: 6,
+      glass: "古典杯", method: "兑和", strength: 2,
+      tags: ["奶香", "咖啡", "浓郁"],
+      desc: "漂浮的奶油让咖啡酒变得丝滑，像一杯会醉的液体甜点。",
+      ingredients: [
+        { item: "vodka", amount: "50ml" },
+        { item: "kahlua", amount: "20ml" },
+        { item: "cream", amount: "30ml" }
+      ],
+      garnish: "无需装饰",
+      steps: [
+        "古典杯加冰，倒入伏特加与咖啡利口酒搅匀",
+        "将淡奶油（或牛奶）缓缓倒在吧勺背上浮于上层",
+        "饮用前轻轻搅拌，享受渐层口感"
+      ]
+    }),
+    R({
+      id: "b52", name: "B-52 轰炸机", en: "B-52", pop: 6,
+      glass: "子弹杯", method: "分层兑和", strength: 3,
+      tags: ["咖啡", "奶香", "甜润"],
+      desc: "咖啡、奶油、橙酒三色分层，一口下去甜暖浓烈，派对明星。",
+      ingredients: [
+        { item: "kahlua", amount: "20ml" },
+        { item: "baileys", amount: "20ml" },
+        { item: "cointreau", amount: "20ml" }
+      ],
+      garnish: "无需装饰",
+      steps: [
+        "子弹杯中先倒入咖啡利口酒",
+        "用吧勺背抵住杯壁，缓缓注入百利甜，浮在第二层",
+        "同样手法注入橙味利口酒做第三层，一口饮尽"
+      ]
+    }),
+    R({
+      id: "mai_tai", name: "迈泰", en: "Mai Tai", pop: 6,
+      glass: "古典杯", method: "摇和", strength: 3,
+      tags: ["浓郁", "果香", "酸甜"],
+      desc: "双朗姆与橙酒、甜香交织的提基经典，一口飞到热带。",
+      ingredients: [
+        { item: "white_rum", amount: "30ml" },
+        { item: "dark_rum", amount: "30ml" },
+        { item: "cointreau", amount: "15ml" },
+        { item: "lime", amount: "20ml" },
+        { item: "grenadine", amount: "10ml" }
+      ],
+      garnish: "薄荷嫩枝 + 青柠角",
+      steps: [
+        "所有材料加冰摇匀",
+        "连酒带冰倒入古典杯",
+        "点缀青柠角（有薄荷叶可加嫩枝）"
+      ]
+    }),
+    R({
+      id: "manhattan", name: "曼哈顿", en: "Manhattan", pop: 6,
+      glass: "马天尼杯", method: "搅拌", strength: 3,
+      tags: ["浓郁", "苦甜"],
+      desc: "威士忌与甜苦艾的经典联姻，醇厚里带一丝草本甜。",
+      ingredients: [
+        { item: "whiskey", amount: "50ml" },
+        { item: "sweet_vermouth", amount: "20ml" }
+      ],
+      garnish: "马拉斯奇诺樱桃",
+      steps: [
+        "调酒杯加冰，倒入威士忌与甜苦艾",
+        "搅拌约 30 秒至冰透",
+        "滤入冰镇马天尼杯即可"
+      ]
+    }),
+    R({
+      id: "godfather", name: "教父", en: "Godfather", pop: 5,
+      glass: "古典杯", method: "搅拌", strength: 3,
+      tags: ["坚果", "甜润", "浓郁"],
+      desc: "杏仁利口酒的坚果甜融入威士忌，像电影一样沉稳有力。",
+      ingredients: [
+        { item: "whiskey", amount: "45ml" },
+        { item: "amaretto", amount: "15ml" }
+      ],
+      garnish: "橙皮（可选）",
+      steps: [
+        "古典杯加冰",
+        "倒入威士忌与杏仁利口酒",
+        "轻轻搅拌 15 秒即可"
+      ]
+    }),
+    R({
+      id: "sidecar", name: "侧车", en: "Sidecar", pop: 5,
+      glass: "马天尼杯", method: "摇和", strength: 2,
+      tags: ["酸甜", "浓郁", "果香"],
+      desc: "白兰地的醇厚果香配橙酒与柠檬，一战时期的复古优雅。",
+      ingredients: [
+        { item: "brandy", amount: "40ml" },
+        { item: "cointreau", amount: "20ml" },
+        { item: "lemon", amount: "20ml" }
+      ],
+      garnish: "糖边 + 橙皮",
+      steps: [
+        "杯口可蘸糖边",
+        "所有材料加冰摇匀",
+        "滤入冰镇马天尼杯即可"
+      ]
+    }),
+    R({
+      id: "sea_breeze", name: "海风", en: "Sea Breeze", pop: 5,
+      glass: "高球杯", method: "兑和", strength: 1,
+      tags: ["莓果", "微酸", "清爽"],
+      desc: "蔓越莓的酸与西柚的微苦相遇，清爽如海边晚风。",
+      ingredients: [
+        { item: "vodka", amount: "40ml" },
+        { item: "cranberry", amount: "90ml" },
+        { item: "grapefruit", amount: "60ml" }
+      ],
+      garnish: "西柚片",
+      steps: [
+        "高球杯加冰",
+        "倒入伏特加，加入蔓越莓汁与西柚汁",
+        "轻轻搅匀，饰西柚片"
+      ]
+    }),
+    R({
+      id: "mint_julep", name: "薄荷茱莉普", en: "Mint Julep", pop: 5,
+      glass: "古典杯（金属杯更佳）", method: "捣压", strength: 3,
+      tags: ["薄荷", "浓郁", "甜润"],
+      desc: "薄荷与糖在杯底捣香，波本威士忌冰凉浓烈，肯塔基的夏日。",
+      ingredients: [
+        { item: "whiskey", amount: "60ml" },
+        { item: "mint", amount: "8 片" },
+        { item: "simple", amount: "12ml" }
+      ],
+      garnish: "大束薄荷嫩枝",
+      steps: [
+        "薄荷叶与单糖浆放入杯底轻捣出香",
+        "加碎冰与威士忌，搅拌至杯外壁挂霜",
+        "补满碎冰堆成小山，插大束薄荷嫩枝"
+      ]
+    }),
+    R({
+      id: "bees_knees", name: "蜜蜂的膝盖", en: "Bee's Knees", pop: 4,
+      glass: "马天尼杯", method: "摇和", strength: 2,
+      tags: ["酸甜", "甜润"],
+      desc: "用蜂蜜代替糖浆，让金酒酸多了一层花香与圆润。",
+      ingredients: [
+        { item: "gin", amount: "45ml" },
+        { item: "lemon", amount: "20ml" },
+        { item: "honey", amount: "15ml" }
+      ],
+      garnish: "柠檬皮",
+      steps: [
+        "蜂蜜先用少量温水调稀成蜂蜜糖浆",
+        "与金酒、柠檬汁一起加冰摇匀",
+        "滤入冰镇杯中即可"
+      ]
+    }),
+    R({
+      id: "elderflower_fizz", name: "接骨木花香菲士", en: "Elderflower Gin Fizz", pop: 6,
+      glass: "高球杯", method: "摇和 · 兑和", strength: 2,
+      tags: ["花香", "清爽", "气泡", "酸甜"],
+      desc: "接骨木花糖浆带着清雅的荔枝般花香，与金酒、柠檬和气泡交织成一杯轻盈花香调。",
+      ingredients: [
+        { item: "gin", amount: "40ml" },
+        { item: "elderflower", amount: "20ml" },
+        { item: "lemon", amount: "20ml" },
+        { item: "soda", amount: "60ml" }
+      ],
+      garnish: "柠檬片 + 薄荷嫩枝",
+      steps: [
+        "金酒、接骨木花糖浆与柠檬汁加冰摇匀",
+        "滤入加满冰的高球杯",
+        "补满苏打水，轻搅均匀即可"
+      ]
+    }),
+    R({
+      id: "hugo_spritz", name: "雨果气泡", en: "Hugo Spritz", pop: 6,
+      glass: "葡萄酒杯", method: "兑和", strength: 1,
+      tags: ["花香", "气泡", "薄荷", "清爽"],
+      desc: "阿尔卑斯山区的开胃气泡，接骨木花香与薄荷清凉在起泡酒里轻盈绽放。",
+      ingredients: [
+        { item: "prosecco", amount: "60ml" },
+        { item: "elderflower", amount: "20ml" },
+        { item: "soda", amount: "30ml" },
+        { item: "mint", amount: "5–6 片" }
+      ],
+      garnish: "薄荷嫩枝",
+      steps: [
+        "葡萄酒杯中放入薄荷叶与接骨木花糖浆，轻压出香",
+        "加满冰块，倒入起泡葡萄酒",
+        "补少许苏打水，轻搅一圈，点缀薄荷嫩枝"
+      ]
+    }),
+    R({
+      id: "passion_fruit_fizz", name: "百香果菲士", en: "Passion Fruit Fizz", pop: 6,
+      glass: "高球杯", method: "摇和 · 兑和", strength: 2,
+      tags: ["果香", "酸甜", "气泡", "清爽"],
+      desc: "百香果糖浆的热带酸甜裹着伏特加，再被苏打水点亮，一口入夏。",
+      ingredients: [
+        { item: "vodka", amount: "45ml" },
+        { item: "passionfruit", amount: "25ml" },
+        { item: "lime", amount: "15ml" },
+        { item: "soda", amount: "60ml" }
+      ],
+      garnish: "青柠角",
+      steps: [
+        "伏特加、百香果糖浆与青柠汁加冰摇匀",
+        "滤入加满冰的高球杯",
+        "补满苏打水，轻搅均匀，点缀青柠角"
+      ]
+    }),
+    R({
+      id: "passion_martini", name: "百香果马提尼", en: "Passion Fruit Martini", pop: 6,
+      glass: "马天尼杯", method: "摇和", strength: 2,
+      tags: ["果香", "酸甜"],
+      desc: "百香果的明亮酸甜把伏特加点亮，摇匀后果香扑鼻，派对感十足。",
+      ingredients: [
+        { item: "vodka", amount: "45ml" },
+        { item: "passionfruit", amount: "25ml" },
+        { item: "lime", amount: "15ml" },
+        { item: "prosecco", amount: "20ml", optional: true }
+      ],
+      garnish: "无需装饰",
+      steps: [
+        "伏特加、百香果糖浆与青柠汁加冰，用力摇匀至壶身结霜",
+        "双重过滤滤入冰镇马天尼杯",
+        "备有起泡酒时，可在杯顶浮少量增加气泡感"
+      ]
+    })
+  ];
+
+  var state = { inv: {}, custom: { base: [], liqueur: [], syrup: [], mixer: [], extra: [] } };
+  var CUSTOM_CATS = ["base", "liqueur", "syrup", "mixer", "extra"];
+  var FAV_KEY = "home-bar-fav-v1";
+  var favs = {};
+
+  function favKey(r) {
+    if (!r.creative) return r.id;
+    return "cre:" + r.ingredients.map(function (i) { return i.item; }).sort().join("|");
+  }
+  function saveFavs() {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
+  }
+  function loadFavs() {
+    try {
+      var raw = localStorage.getItem(FAV_KEY);
+      if (raw) favs = JSON.parse(raw) || {};
+    } catch (e) { favs = {}; }
+  }
+  function isFav(r) { return !!favs[favKey(r)]; }
+  function toggleFav(r) {
+    var k = favKey(r);
+    if (favs[k]) {
+      delete favs[k];
+    } else {
+      var names = {};
+      r.ingredients.forEach(function (i) { if (NAME[i.item]) names[i.item] = NAME[i.item]; });
+      favs[k] = { r: r, names: names, at: Date.now() };
+    }
+    saveFavs();
+    updateFavCount();
+    return !!favs[k];
+  }
+  function updateFavCount() { $("favCount").textContent = Object.keys(favs).length; }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        inv: Object.keys(state.inv).filter(function (k) { return state.inv[k]; }),
+        custom: state.custom
+      }));
+    } catch (e) {}
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      (data.inv || []).forEach(function (id) { state.inv[id] = true; });
+      CUSTOM_CATS.forEach(function (c) {
+        (data.custom && data.custom[c] || []).forEach(function (pair) {
+          if (pair && pair[0] && pair[1]) {
+            state.custom[c].push([pair[0], pair[1]]);
+            NAME[pair[0]] = pair[1];
+          }
+        });
+      });
+    } catch (e) {}
+  }
+
+  function isCustomId(id) { return String(id).indexOf("cu_") === 0; }
+
+  function addCustomItem(catId, name, selectIt) {
+    name = (name || "").trim().replace(/\s+/g, " ");
+    if (!name) return null;
+    var key = name.toLowerCase();
+    var existing = null;
+    CUSTOM_CATS.forEach(function (c) {
+      (state.custom[c] || []).forEach(function (pair) {
+        if (!existing && pair[1].toLowerCase() === key) existing = pair[0];
+      });
+    });
+    if (existing) {
+      if (selectIt) state.inv[existing] = true;
+      save();
+      return existing;
+    }
+    var id = "cu_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    state.custom[catId] = state.custom[catId] || [];
+    state.custom[catId].push([id, name]);
+    NAME[id] = name;
+    if (selectIt) state.inv[id] = true;
+    save();
+    return id;
+  }
+
+  function removeCustomItem(id) {
+    CUSTOM_CATS.forEach(function (c) {
+      state.custom[c] = (state.custom[c] || []).filter(function (pair) { return pair[0] !== id; });
+    });
+    delete NAME[id];
+    delete state.inv[id];
+    save();
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var collapsedCats = {};
+  var searchQuery = "";
+
+  function itemMatches(name) {
+    if (!searchQuery) return true;
+    var q = searchQuery;
+    var qn = q.replace(/\s/g, "");
+    return name.toLowerCase().indexOf(q) !== -1
+      || name.replace(/\s/g, "").toLowerCase().indexOf(qn) !== -1;
+  }
+
+  function renderCats() {
+    var box = $("catList");
+    box.innerHTML = "";
+    var anyMatch = false;
+    CATS.forEach(function (cat) {
+      var sec = document.createElement("div");
+      sec.className = "cat";
+      sec.dataset.cat = cat.id;
+      if (collapsedCats[cat.id] && !searchQuery) sec.classList.add("collapsed");
+
+      var title = document.createElement("div");
+      title.className = "cat-title";
+      title.innerHTML = '<span class="dot"></span><span>' + cat.name + '</span><span class="cat-hint">' + cat.hint + '</span><span class="chev">⌄</span>';
+      title.addEventListener("click", function () {
+        collapsedCats[cat.id] = !collapsedCats[cat.id];
+        sec.classList.toggle("collapsed", !!collapsedCats[cat.id] && !searchQuery);
+      });
+      sec.appendChild(title);
+
+      var chips = document.createElement("div");
+      chips.className = "chips";
+
+      var items = cat.items.concat(state.custom[cat.id] || []);
+      var matchedInCat = 0;
+      items.forEach(function (it) {
+        if (!itemMatches(it[1])) return;
+        matchedInCat++;
+        anyMatch = true;
+        var b = document.createElement("button");
+        b.className = "chip" + (isCustomId(it[0]) ? " custom" : "");
+        b.dataset.id = it[0];
+        b.appendChild(document.createTextNode(it[1]));
+        if (state.inv[it[0]]) b.classList.add("on");
+
+        if (isCustomId(it[0])) {
+          var x = document.createElement("span");
+          x.className = "chip-x";
+          x.textContent = "×";
+          x.title = "从清单移除";
+          x.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            removeCustomItem(it[0]);
+            renderCats();
+            updateCount();
+          });
+          b.appendChild(x);
+        }
+
+        b.addEventListener("click", function () {
+          state.inv[it[0]] = !state.inv[it[0]];
+          if (!state.inv[it[0]]) delete state.inv[it[0]];
+          b.classList.toggle("on");
+          updateCount();
+          save();
+        });
+        chips.appendChild(b);
+      });
+
+      if (!searchQuery && CUSTOM_CATS.indexOf(cat.id) !== -1) {
+        var add = document.createElement("button");
+        add.className = "chip add";
+        add.textContent = "＋ 添加";
+        add.addEventListener("click", function () {
+          add.style.display = "none";
+          var form = document.createElement("span");
+          form.className = "chip-form";
+          var input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "输入" + cat.name.replace(/\s*\/\s*甜味|\s*·\s*软饮/g, "") + "名称";
+          var ok = document.createElement("button");
+          ok.className = "ok";
+          ok.textContent = "✓";
+          var cancel = document.createElement("button");
+          cancel.className = "cancel";
+          cancel.textContent = "✕";
+          form.appendChild(input);
+          form.appendChild(ok);
+          form.appendChild(cancel);
+          chips.appendChild(form);
+          input.focus();
+
+          function done(commit) {
+            var val = input.value;
+            if (commit) {
+              var id = addCustomItem(cat.id, val, true);
+              if (id) showToast("已添加并勾选：" + val.trim());
+            }
+            renderCats();
+            updateCount();
+          }
+          ok.addEventListener("click", function () { done(true); });
+          cancel.addEventListener("click", function () { done(false); });
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") done(true);
+            if (e.key === "Escape") done(false);
+          });
+        });
+        chips.appendChild(add);
+      }
+
+      sec.appendChild(chips);
+      if (searchQuery && !matchedInCat) sec.style.display = "none";
+      box.appendChild(sec);
+    });
+    $("searchEmpty").style.display = (searchQuery && !anyMatch) ? "block" : "none";
+  }
+
+  function updateCount() {
+    var n = Object.keys(state.inv).length;
+    $("invCount").textContent = n;
+    var dc = $("dockCount");
+    if (dc) dc.textContent = n;
+  }
+
+  function setAll(on, list) {
+    list.forEach(function (id) {
+      if (on) state.inv[id] = true;
+      else delete state.inv[id];
+      var chip = document.querySelector('.chip[data-id="' + id + '"]');
+      if (chip) chip.classList.toggle("on", on);
+    });
+    updateCount();
+    save();
+  }
+
+  var DEMO = ["vodka", "gin", "white_rum", "dark_rum", "tequila", "whiskey",
+    "cointreau", "kahlua", "simple", "grenadine",
+    "lemon", "lime", "orange", "cranberry", "pineapple",
+    "cola", "ginger_ale", "tonic", "soda", "mint"];
+  function allIds() { return Object.keys(NAME); }
+
+  function showToast(text) {
+    var t = $("toast");
+    t.textContent = text;
+    t.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { t.classList.remove("show"); }, 2400);
+  }
+
+  function scoreRecipes() {
+    return RECIPES.map(function (r) {
+      var missing = r.ingredients.filter(function (ing) {
+        return !ing.optional && !state.inv[ing.item];
+      }).map(function (ing) { return ing.item; });
+      return { recipe: r, missing: missing, score: missing.length };
+    });
+  }
+
+  // ---------- 创意调酒生成器：凑不齐经典配方时，只用库存原料即兴组一杯 ----------
+  var SPIRITS = ["vodka", "gin", "white_rum", "dark_rum", "tequila", "whiskey", "brandy", "baijiu", "wine"];
+  var LIQ_BUILTIN = ["cointreau", "campari", "aperol", "sweet_vermouth", "dry_vermouth", "kahlua", "baileys", "malibu", "peach", "amaretto", "blue_curacao"];
+  var SYRUP_BUILTIN = ["simple", "grenadine", "honey", "elderflower", "passionfruit"];
+  var JUICE_BUILTIN = ["orange", "cranberry", "pineapple", "grapefruit"];
+  var CITRUS_BUILTIN = ["lime", "lemon"];
+  var SPARK_BUILTIN = ["tonic", "soda", "ginger_ale", "cola"];
+  var CREAM_BUILTIN = ["coconut", "cream"];
+  var CREAM_LIQ = ["kahlua", "baileys", "malibu"];
+
+  var BASE_WORD = { vodka: "伏特加", gin: "金酒", white_rum: "白朗姆", dark_rum: "黑朗姆", tequila: "龙舌兰", whiskey: "威士忌", brandy: "白兰地", baijiu: "白酒", wine: "葡萄酒", prosecco: "起泡酒" };
+  var FLAVOR_ORDER = ["mint", "elderflower", "passionfruit", "peach", "kahlua", "baileys", "coconut", "malibu", "cranberry", "pineapple", "grapefruit", "orange", "amaretto", "campari", "aperol", "honey", "grenadine", "blue_curacao", "cointreau", "ginger_ale", "cola", "tonic", "lime", "lemon"];
+  var FLAVOR_WORD = { mint: "薄荷", elderflower: "接骨木花", passionfruit: "百香果", peach: "蜜桃", malibu: "椰香", coconut: "椰香", kahlua: "咖啡", baileys: "奶油", cranberry: "蔓越莓", pineapple: "菠萝", grapefruit: "西柚", orange: "鲜橙", amaretto: "杏仁", campari: "苦橙", aperol: "苦橙", honey: "蜂蜜", grenadine: "红石榴", blue_curacao: "蓝橙", cointreau: "橙香", lime: "青柠", lemon: "柠檬", ginger_ale: "干姜", cola: "可乐", tonic: "汤力" };
+  var STYLE_WORD = { highball: "嗨棒", sour: "酸饮", cooler: "微风", creamy: "甜梦", rocks: "冰醇" };
+  var STYLE_EN = { highball: "House Highball", sour: "House Sour", cooler: "Pantry Cooler", creamy: "Velvet Dream", rocks: "Spirit on the Rocks", mocktail: "Zero-Proof Punch", spritz: "Spritz Fizz", solo: "Chilled Prosecco" };
+
+  function customInvOf(catId) {
+    return (state.custom[catId] || []).map(function (p) { return p[0]; }).filter(function (id) { return !!state.inv[id]; });
+  }
+  function baseWord(id) { return BASE_WORD[id] || (NAME[id] || ""); }
+
+  function creativeTags(ids, sourSweet) {
+    var t = [];
+    function add(x) { if (x && t.indexOf(x) < 0) t.push(x); }
+    ids.forEach(function (id) {
+      var nm = (NAME[id] || "");
+      if (["tonic", "soda", "ginger_ale", "cola", "prosecco"].indexOf(id) !== -1 || nm.indexOf("气泡") !== -1 || nm.indexOf("汽水") !== -1) add("气泡");
+      if (["orange", "cranberry", "pineapple", "grapefruit", "passionfruit", "peach", "cointreau", "blue_curacao"].indexOf(id) !== -1) add("果香");
+      if (id === "cranberry" || id === "grenadine" || nm.indexOf("莓") !== -1) add("莓果");
+      if (id === "coconut" || id === "malibu" || nm.indexOf("椰") !== -1) add("椰香");
+      if (id === "cream" || id === "baileys" || nm.indexOf("奶") !== -1) add("奶香");
+      if (id === "kahlua" || nm.indexOf("咖啡") !== -1) add("咖啡");
+      if (id === "amaretto" || nm.indexOf("杏仁") !== -1 || nm.indexOf("坚果") !== -1) add("坚果");
+      if (id === "campari" || id === "aperol" || id === "sweet_vermouth") add("苦甜");
+      if (id === "dry_vermouth") add("干冽");
+      if (id === "elderflower" || nm.indexOf("花") !== -1) add("花香");
+      if (id === "mint" || nm.indexOf("薄荷") !== -1) add("薄荷");
+      if (id === "honey" || nm.indexOf("蜜") !== -1) add("甜润");
+      if (nm.indexOf("姜") !== -1) add("辛香");
+      if (id === "gin") add("草本");
+      if (id === "whiskey" || id === "brandy" || id === "dark_rum") add("浓郁");
+      if (id === "tequila") add("辛香");
+    });
+    if (sourSweet === "sour") add("微酸");
+    if (sourSweet === "sweetSour") add("酸甜");
+    if (t.indexOf("薄荷") !== -1) add("清爽");
+    return t.slice(0, 4);
+  }
+
+  function creativeStrength(spiritMl, proseccoMl, totalMl) {
+    if (!spiritMl && !proseccoMl) return 0;
+    var eff = spiritMl + proseccoMl * 0.25;
+    var r = eff / totalMl;
+    if (r >= 0.5) return 3;
+    if (r >= 0.3) return 2;
+    return 1;
+  }
+
+  function creativeGarnish(style, usedIds) {
+    var g = [];
+    var refreshing = ["highball", "cooler", "mocktail", "spritz", "sour"].indexOf(style) !== -1;
+    if (state.inv.mint && refreshing) g.push("薄荷嫩枝");
+    if (state.inv.lime) g.push("青柠角");
+    else if (state.inv.lemon_fresh) g.push(style === "rocks" ? "柠檬皮捲" : "柠檬片");
+    return g.length ? g.join(" + ") : "无需额外装饰";
+  }
+
+  function creativeName(style, baseId, usedIds) {
+    var flavor = null;
+    for (var i = 0; i < FLAVOR_ORDER.length; i++) {
+      if (usedIds.indexOf(FLAVOR_ORDER[i]) !== -1) { flavor = FLAVOR_WORD[FLAVOR_ORDER[i]]; break; }
+    }
+    if (!flavor) {
+      var cu = usedIds.filter(isCustomId)[0];
+      if (cu) flavor = (NAME[cu] || "").slice(0, 4);
+    }
+    if (style === "mocktail") return (flavor || "果园") + "无酒精宾治";
+    if (style === "solo") return "冰镇起泡酒";
+    if (style === "spritz") return (flavor || "鲜果") + "气泡特饮";
+    return (flavor || "") + baseWord(baseId) + STYLE_WORD[style];
+  }
+
+  function buildCreativeRecipes() {
+    var spirits = SPIRITS.filter(function (id) { return !!state.inv[id]; }).concat(customInvOf("base"));
+    var liqs = LIQ_BUILTIN.filter(function (id) { return !!state.inv[id]; }).concat(customInvOf("liqueur"));
+    var syrups = SYRUP_BUILTIN.filter(function (id) { return !!state.inv[id]; }).concat(customInvOf("syrup"));
+    var juices = JUICE_BUILTIN.filter(function (id) { return !!state.inv[id]; });
+    var citrus = CITRUS_BUILTIN.filter(function (id) { return !!state.inv[id]; });
+    var sparklers = SPARK_BUILTIN.filter(function (id) { return !!state.inv[id]; });
+    var creams = CREAM_BUILTIN.filter(function (id) { return !!state.inv[id]; });
+    var mixerCustom = customInvOf("mixer");
+    var hasProsecco = !!state.inv.prosecco;
+    var spirit = spirits[0] || null;
+
+    var out = [];
+    var seen = {};
+    function push(r) {
+      var sig = r.ingredients.map(function (i) { return i.item; }).sort().join("|");
+      if (seen[sig]) return;
+      seen[sig] = true;
+      r.creative = true;
+      r.pop = 0;
+      out.push(r);
+    }
+    function mk(style, baseId, glass, method, strength, tags, desc, ings, steps, garnish) {
+      var usedIds = ings.map(function (i) { return i.item; });
+      return {
+        id: "creative_" + style + "_" + (baseId || "na"),
+        name: creativeName(style, baseId, usedIds),
+        en: STYLE_EN[style],
+        glass: glass, method: method, strength: strength,
+        tags: tags, desc: desc,
+        ingredients: ings, garnish: garnish || creativeGarnish(style, usedIds),
+        steps: steps
+      };
+    }
+
+    // ① 嗨棒：烈酒/起泡酒 + 气泡软饮，最省事
+    if ((spirit || hasProsecco) && sparklers.length) {
+      var mixer = sparklers[0];
+      var base = spirit || "prosecco";
+      var isProc = base === "prosecco";
+      var accent = liqs[0] ? { id: liqs[0], amt: "15ml" } : (syrups[0] ? { id: syrups[0], amt: "10ml" } : (citrus[0] ? { id: citrus[0], amt: "10ml" } : null));
+      var ings = [{ item: base, amount: isProc ? "90ml" : "45ml" }];
+      if (accent) ings.push({ item: accent.id, amount: accent.amt });
+      ings.push({ item: mixer, amount: "补满（约90ml）" });
+      var ids = ings.map(function (i) { return i.item; });
+      var ss = accent && CITRUS_BUILTIN.indexOf(accent.id) !== -1 ? (syrups.length || liqs.length ? "sweetSour" : "sour") : null;
+      var total = (isProc ? 90 : 45) + (accent ? 12 : 0) + 90;
+      var desc = baseWord(base) + "打底，" + NAME[mixer] + "在杯中呲呲冒泡，" +
+        (accent ? "再加一点" + NAME[accent.id] + "提味，" : "") + "冰爽顺口，看球聊天都适合慢慢喝。";
+      var steps = [
+        "高球杯中加满冰块",
+        "倒入" + baseWord(base) + (accent ? "与" + NAME[accent.id] : "") + "，用吧勺轻拌两下",
+        "注满" + NAME[mixer] + "，轻轻提拉混合，点缀装饰后插吸管即可"
+      ];
+      push(mk(isProc ? "spritz" : "highball", isProc ? null : base, "高球杯", "兑和 · 搅拌",
+        creativeStrength(isProc ? 0 : 45, isProc ? 90 : 0, total),
+        creativeTags(ids, ss), desc, ings, steps));
+    }
+
+    // ② 酸饮：烈酒 + 柑橘酸 + 甜，摇和
+    if (spirit && citrus.length && (syrups.length || liqs.length)) {
+      var cit = citrus[0] === "lime" || citrus.indexOf("lime") !== -1 ? "lime" : citrus[0];
+      var sweet = syrups[0] ? { id: syrups[0], amt: "15ml" } : { id: liqs[0], amt: "20ml" };
+      var ings2 = [{ item: spirit, amount: "45ml" }, { item: cit, amount: "20ml（约半个）" }, { item: sweet.id, amount: sweet.amt }];
+      var ids2 = ings2.map(function (i) { return i.item; });
+      var steps2 = [
+        "雪克壶中加七分满冰块",
+        "倒入" + baseWord(spirit) + "、" + NAME[cit] + "与" + NAME[sweet.id] + "，盖紧摇荡至壶身结霜（约12秒）",
+        "滤冰倒入古典杯，配上装饰，趁凉喝"
+      ];
+      var desc2 = "经典酸甜平衡结构：" + NAME[cit] + "的鲜酸被" + NAME[sweet.id] + "稳稳托起，" +
+        baseWord(spirit) + "的酒感清晰却不冲口，第一口醒神、第二口顺喉。";
+      push(mk("sour", spirit, "古典杯", "摇和", creativeStrength(45, 0, 85),
+        creativeTags(ids2, "sweetSour"), desc2, ings2, steps2));
+    }
+
+    // ③ 果味微风：烈酒 + 果汁（可点苏打）
+    if (spirit && (juices.length || mixerCustom.length)) {
+      var juice = juices[0] || mixerCustom[0];
+      var top = state.inv.soda ? "soda" : null;
+      var syr = syrups[0] || null;
+      var ings3 = [{ item: spirit, amount: "40ml" }, { item: juice, amount: "80ml" }];
+      if (syr) ings3.push({ item: syr, amount: "10ml", optional: true });
+      if (top) ings3.push({ item: top, amount: "补满气泡（约30ml）", optional: true });
+      var ids3 = ings3.map(function (i) { return i.item; });
+      var steps3 = [
+        "杯中加满冰块，倒入" + baseWord(spirit) + "与" + NAME[juice],
+        (syr ? "加入" + NAME[syr] + "搅匀增甜；" : "") + (top ? "最后注入" + NAME[top] + "补出气泡；" : "用吧勺轻轻提拉混合；"),
+        "加上装饰，一杯果香饱满的长饮就成了"
+      ];
+      var desc3 = NAME[juice] + "把" + baseWord(spirit) + "的棱角包得柔和，果香是主调、酒感藏在后段，" +
+        "入口轻松，适合不太能喝烈酒又想微醺的夜晚。";
+      push(mk("cooler", spirit, "高球杯", "兑和 · 搅拌",
+        creativeStrength(40, 0, 40 + 80 + (top ? 30 : 0)),
+        creativeTags(ids3, syr ? "sweetSour" : null), desc3, ings3, steps3));
+    }
+
+    // ④ 奶香甜梦：烈酒 + 奶油/椰奶（+ 咖啡/椰子利口酒）
+    if (spirit && (creams.length || CREAM_LIQ.some(function (id) { return liqs.indexOf(id) !== -1; }))) {
+      var creamLiq = CREAM_LIQ.filter(function (id) { return liqs.indexOf(id) !== -1; })[0] || null;
+      var cream = creams[0] || null;
+      if (creamLiq || cream) {
+        var ings4 = [{ item: spirit, amount: "40ml" }];
+        if (creamLiq) ings4.push({ item: creamLiq, amount: "20ml" });
+        if (cream) ings4.push({ item: cream, amount: "30ml" });
+        var ids4 = ings4.map(function (i) { return i.item; });
+        var steps4 = [
+          "雪克壶中加冰，倒入" + ings4.map(function (i) { return NAME[i.item]; }).join("、"),
+          "快速摇荡约15秒，让质地均匀冰滑",
+          "滤冰倒入古典杯，入口绵密，像一杯可以喝的甜点，慢品"
+        ];
+        var desc4 = "奶香把" + baseWord(spirit) + "的棱角磨得圆润，入口丝滑、甜而不腻，" +
+          "饭后不想点甜品时，来这一杯正好。";
+        push(mk("creamy", spirit, "古典杯", "摇和",
+          creativeStrength(40, 0, 40 + (creamLiq ? 20 : 0) + (cream ? 30 : 0)),
+          creativeTags(ids4, null).concat(["浓郁"]).slice(0, 4), desc4, ings4, steps4));
+      }
+    }
+
+    // ⑤ 纯饮加冰：只有烈酒
+    if (spirit) {
+      var ings5 = [{ item: spirit, amount: "45ml" }];
+      var g5 = state.inv.lemon_fresh ? "柠檬皮捲" : "无需额外装饰";
+      var steps5 = [
+        "古典杯中放一块大方冰（没有就加满冰块）",
+        "倒入" + baseWord(spirit) + "，轻轻搅拌约10秒给酒降温",
+        (g5 === "柠檬皮捲" ? "拧一片柠檬皮捲在杯口抹过、投入杯中提香，" : "") + "纯饮慢品，感受它本来的香气"
+      ];
+      var desc5 = "不加任何修饰，冰镇后的" + baseWord(spirit) + "酒精刺激感降低、香气更聚拢，" +
+        "适合想安安静静喝一杯的时候。";
+      push(mk("rocks", spirit, "古典杯", "纯饮 · 加冰", 3,
+        creativeTags([spirit], null), desc5, ings5, steps5, g5));
+    }
+
+    // ⑥ 无酒精宾治：完全没有酒时
+    if (!spirit && !hasProsecco) {
+      var mj = juices[0] || mixerCustom[0] || null;
+      var need = mj || citrus.length || state.inv.mint;
+      var top6 = sparklers[0] || null;
+      if (need && (mj || top6)) {
+        var ings6 = [];
+        if (mj) ings6.push({ item: mj, amount: "60ml" });
+        if (citrus[0]) ings6.push({ item: citrus[0], amount: "15ml" });
+        if (syrups[0]) ings6.push({ item: syrups[0], amount: "10ml" });
+        if (state.inv.mint) ings6.push({ item: "mint", amount: "6–8 片" });
+        if (top6) ings6.push({ item: top6, amount: "补满（约90ml）" });
+        if (ings6.length >= 2) {
+          var ids6 = ings6.map(function (i) { return i.item; });
+          var pour6 = ings6.filter(function (i) { return i.item !== top6 && i.item !== "mint"; }).map(function (i) { return NAME[i.item]; });
+          var steps6 = [
+            "高球杯加满冰块" + (pour6.length ? "，倒入" + pour6.join("、") : ""),
+            (state.inv.mint ? "薄荷叶轻拍放入杯中；" : "") + (top6 ? "注满" + NAME[top6] + "补出气泡；" : "充分搅拌均匀；"),
+            "加上装饰，开车或不想喝酒时也能尽兴"
+          ];
+          var desc6 = "用果汁与气泡搭出一杯无酒精特饮，酸甜清爽、仪式感不减，" +
+            "全家都能喝。";
+          push(mk("mocktail", null, "高球杯", "兑和 · 搅拌", 0,
+            creativeTags(ids6, citrus.length && syrups.length ? "sweetSour" : (citrus.length ? "sour" : null)),
+            desc6, ings6, steps6));
+        }
+      }
+    }
+
+    // ⑦ 只有起泡酒：冰镇纯饮
+    if (!spirit && hasProsecco) {
+      var ings7 = [{ item: "prosecco", amount: "120ml" }];
+      var steps7 = [
+        "起泡酒提前冰至 6–8℃",
+        "倒入香槟杯或高脚杯，趁气泡细密时饮用",
+        "本身就是一杯开胃酒，酸度清爽、不用调"
+      ];
+      push(mk("solo", null, "香槟杯", "直接冰镇",
+        creativeStrength(0, 120, 120),
+        creativeTags(["prosecco"], null), "气泡细腻、酸度干净，餐前一杯开胃醒神。",
+        ings7, steps7, "无需额外装饰"));
+    }
+
+    return out.slice(0, 3);
+  }
+
+  var pool = [];
+  var curBatch = [];
+
+  function generate() {
+    if (!Object.keys(state.inv).length) {
+      showToast("先勾选家里现有的酒料吧～");
+      return;
+    }
+    var scored = scoreRecipes();
+    var perfect = scored.filter(function (s) { return s.score === 0; })
+      .sort(function (a, b) { return b.recipe.pop - a.recipe.pop; });
+    var near = scored.filter(function (s) { return s.score > 0; })
+      .sort(function (a, b) { return a.score - b.score || b.recipe.pop - a.recipe.pop; });
+
+    curBatch = [];
+    $("results").hidden = false;
+
+    if (perfect.length > 0) {
+      pool = perfect;
+      $("resultTitle").textContent = "今晚，这几杯用你酒柜里的材料就能调";
+      $("resultSub").textContent = "共匹配 " + perfect.length + " 款配方，全部原料均来自你勾选的库存";
+      renderCards();
+    } else {
+      var creative = buildCreativeRecipes();
+      if (creative.length) {
+        pool = creative.map(function (r) { return { recipe: r, missing: [], score: 0 }; });
+        $("resultTitle").textContent = "经典配方凑不齐？先用酒柜里的材料调这几杯";
+        $("resultSub").textContent = "以下创意特调全部由你勾选的材料组合而成，用量可按口味微调";
+        renderCards();
+        if (near.length) renderNearHint(near.slice(0, 3));
+      } else {
+        pool = [];
+        $("resultTitle").textContent = "当前库存还凑不齐一款完整配方";
+        $("resultSub").textContent = "下面几款最接近，补齐标出的材料即可解锁（不会擅自给你加料）";
+        renderEmpty(near.slice(0, 3));
+      }
+    }
+    setTimeout(function () {
+      $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(syncDock, 700);
+    }, 80);
+  }
+
+  function nearHintCard(near) {
+    var card = document.createElement("div");
+    card.className = "recipe-card";
+    card.innerHTML = '<div class="r-section-t">想调经典款？补齐这些材料即可解锁</div>' +
+      near.map(function (s) {
+        var missNames = s.missing.map(function (id) { return NAME[id]; }).join("、");
+        return '<div class="hint-row">' +
+          '<span class="hint-name">' + esc(s.recipe.name) + "</span>" +
+          '<span class="hint-miss">还差：' + esc(missNames) + "</span>" +
+          "</div>";
+      }).join("");
+    return card;
+  }
+
+  function renderEmpty(near) {
+    var box = $("recipeCards");
+    box.innerHTML = "";
+    $("shuffleBtn").style.display = "none";
+    if (!near.length) return;
+    box.appendChild(nearHintCard(near));
+  }
+
+  function renderNearHint(near) {
+    if (!near.length) return;
+    $("recipeCards").appendChild(nearHintCard(near));
+  }
+
+  function garnishFor(r) {
+    var raw = r.garnish || "";
+    if (raw.indexOf("无需") === 0) return raw;
+    var pieces = raw.split(/\s*[+/、]\s*/).filter(Boolean);
+    var kept = pieces.map(function (p) {
+      var need = null;
+      if (p.indexOf("薄荷") >= 0) need = "mint";
+      else if (p.indexOf("青柠") >= 0) need = "lime";
+      else if (p.indexOf("西柚") >= 0) need = "grapefruit";
+      else if (p.indexOf("菠萝") >= 0) need = "pineapple";
+      else if (p.indexOf("橙") >= 0) need = "orange";
+      else if (p.indexOf("柠檬") >= 0) need = "lemon_fresh";
+      else if (p.indexOf("樱桃") >= 0 || p.indexOf("橄榄") >= 0) need = "__none__";
+      return { text: p.replace(/（可选）/g, ""), need: need };
+    }).filter(function (p) {
+      if (p.need === "__none__") return false;
+      if (!p.need) return true;
+      return !!state.inv[p.need];
+    }).map(function (p) { return p.text; });
+    return kept.length ? kept.join(" + ") : "无需额外装饰";
+  }
+
+  function renderCards() {
+    var box = $("recipeCards");
+    box.innerHTML = "";
+    if (!pool.length) {
+      $("shuffleBtn").style.display = "none";
+      return;
+    }
+    var batchValid = curBatch.length && curBatch.every(function (s) { return pool.indexOf(s) !== -1; });
+    if (!batchValid) curBatch = pool.slice(0, Math.min(3, pool.length));
+    curBatch.forEach(function (s, idx) {
+      box.appendChild(renderCard(s, idx));
+    });
+    $("shuffleBtn").style.display = pool.length > 3 ? "" : "none";
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function itemNameOf(id, names) { return NAME[id] || (names && names[id]) || id; }
+
+  function scaleAmount(text, n) {
+    if (n === 1) return text;
+    return text.replace(/\d+(?:\.\d+)?/g, function (d) {
+      var v = Math.round(parseFloat(d) * n * 10) / 10;
+      return String(v);
+    });
+  }
+
+  function amountMl(text) {
+    var m = /(\d+(?:\.\d+)?)\s*ml/i.exec(text);
+    return m ? parseFloat(m[1]) : 0;
+  }
+  function ingsMlPerCup(ings) {
+    return Math.round(ings.reduce(function (sum, ing) { return sum + amountMl(ing.amount); }, 0));
+  }
+  function ingTitle(n, perCup) {
+    if (!perCup) return "配方用量（" + n + "杯）";
+    if (n === 1) return "配方用量（1杯 · 约" + perCup + "ml）";
+    return "配方用量（" + n + "杯 · 共约" + Math.round(perCup * n) + "ml）";
+  }
+
+  function renderCard(s, idx, opts) {
+    opts = opts || {};
+    var r = s.recipe;
+    var names = opts.names || null;
+    var favMode = !!opts.favMode;
+    var card = document.createElement("div");
+    card.className = "recipe-card";
+    card._servings = 1;
+
+    var badge;
+    if (favMode) badge = '<span class="badge fav">♥ 我的收藏</span>';
+    else if (r.creative) badge = '<span class="badge creative">✦ 创意特调 · 材料齐全</span>';
+    else if (s.score === 0) badge = '<span class="badge ok">✓ 材料齐全，直接调</span>';
+    else badge = '<span class="badge no">还差 ' + s.score + " 样</span>";
+
+    var tagsHtml = r.tags.map(function (t) {
+      var c = TAG_COLORS[t] || "#d4af6a";
+      return '<span class="tag" style="color:' + c + ';border-color:' + c + "66;background:" + c + "1a\">" + t + "</span>";
+    }).join("");
+
+    var dots = "";
+    for (var d = 1; d <= 3; d++) dots += '<span class="sd' + (d <= r.strength ? " on" : "") + '"></span>';
+
+    var shownIngs = favMode ? r.ingredients : r.ingredients.filter(function (ing) { return !!state.inv[ing.item]; });
+    var mlPerCup = ingsMlPerCup(shownIngs);
+    card._mlPerCup = mlPerCup;
+    var garnishText = favMode ? (r.garnish || "无需额外装饰") : garnishFor(r);
+
+    var ingsHtml = shownIngs.map(function (ing) {
+      var label = itemNameOf(ing.item, names) + (ing.optional ? "（可选）" : "");
+      return '<div class="ing-row' + (favMode ? "" : " have") + '">' +
+        '<span class="ing-name"><span class="sdot"></span><span>' + esc(label) + "</span></span>" +
+        '<span class="ing-amount" data-base="' + esc(ing.amount) + '">' + esc(ing.amount) + "</span>" +
+        "</div>";
+    }).join("");
+
+    var stepsHtml = r.steps.map(function (st) {
+      return '<li data-act="step">' + esc(st) + "</li>";
+    }).join("");
+
+    var faved = isFav(r);
+    card.innerHTML =
+      (favMode ? "" : '<div class="r-num">0' + (idx + 1) + "</div>") +
+      badge +
+      '<div class="r-name">' + esc(r.name) + "</div>" +
+      '<div class="r-en">' + esc(r.en) + "</div>" +
+      '<div class="r-meta">' +
+        '<span class="meta-item">杯型：' + esc(r.glass) + "</span>" +
+        '<span class="meta-item">做法：' + esc(r.method) + "</span>" +
+        '<span class="meta-item strength">' + dots + "&nbsp;" + STRENGTH[r.strength] + "</span>" +
+      "</div>" +
+      '<div class="tags">' + tagsHtml + "</div>" +
+      '<p class="r-desc">' + esc(r.desc) + "</p>" +
+      '<div class="r-section-row">' +
+        '<div class="r-section-t" data-role="ing-title">' + esc(ingTitle(1, mlPerCup)) + "</div>" +
+        '<div class="servings">' +
+          '<button data-act="svminus" type="button" disabled>−</button>' +
+          '<span class="sv-num"><b data-role="svnum">1</b> 杯</span>' +
+          '<button data-act="svplus" type="button">+</button>' +
+        "</div>" +
+      "</div>" +
+      ingsHtml +
+      '<div class="r-section-t">调制步骤（点一下标记完成）</div>' +
+      '<ol class="steps">' + stepsHtml + "</ol>" +
+      '<div class="r-garnish"><b>装饰：</b>' + esc(garnishText) + "</div>" +
+      '<div class="r-actions">' +
+        '<button class="act-btn' + (faved ? " faved" : "") + '" data-act="fav" type="button">' + (faved ? "♥ 已收藏" : "♡ 收藏") + "</button>" +
+        '<button class="act-btn" data-act="copy" type="button">📋 复制配方</button>' +
+        '<button class="act-btn" data-act="share" type="button">🖼 生成分享图</button>' +
+        '<span class="step-progress" data-role="step-progress"></span>' +
+      "</div>";
+
+    card._payload = { r: r, names: names, favMode: favMode, ings: shownIngs, garnishText: garnishText };
+    refreshStepProgress(card);
+    return card;
+  }
+
+  function applyServings(card) {
+    var n = card._servings;
+    card.querySelectorAll(".ing-amount[data-base]").forEach(function (el) {
+      el.textContent = scaleAmount(el.getAttribute("data-base"), n);
+    });
+    var num = card.querySelector("[data-role=svnum]");
+    if (num) num.textContent = n;
+    var title = card.querySelector("[data-role=ing-title]");
+    if (title) title.textContent = ingTitle(n, card._mlPerCup || 0);
+    var minus = card.querySelector('[data-act="svminus"]');
+    var plus = card.querySelector('[data-act="svplus"]');
+    if (minus) minus.disabled = n <= 1;
+    if (plus) plus.disabled = n >= 6;
+  }
+
+  function refreshStepProgress(card) {
+    var all = card.querySelectorAll(".steps li");
+    var done = card.querySelectorAll(".steps li.done");
+    var el = card.querySelector("[data-role=step-progress]");
+    if (el) el.textContent = all.length ? "调制进度 " + done.length + "/" + all.length : "";
+  }
+
+  function refreshFavBtn(card) {
+    var on = isFav(card._payload.r);
+    var btn = card.querySelector('[data-act="fav"]');
+    if (btn) {
+      btn.classList.toggle("faved", on);
+      btn.textContent = on ? "♥ 已收藏" : "♡ 收藏";
+    }
+  }
+
+  function recipeText(p, servings) {
+    var r = p.r;
+    var L = [];
+    L.push("【" + r.name + " " + r.en + "】" + (r.creative ? "（创意特调）" : ""));
+    L.push("风味：" + r.tags.join(" · "));
+    L.push("杯型：" + r.glass + "　做法：" + r.method + "　度数：" + STRENGTH[r.strength]);
+    L.push(ingTitle(servings, ingsMlPerCup(p.ings)) + "：");
+    p.ings.forEach(function (ing) {
+      L.push("· " + itemNameOf(ing.item, p.names) + (ing.optional ? "（可选）" : "") + "　" + scaleAmount(ing.amount, servings));
+    });
+    L.push("装饰：" + p.garnishText);
+    L.push("调制步骤：");
+    r.steps.forEach(function (st, i) { L.push((i + 1) + ". " + st); });
+    L.push("—— 来自「家庭调酒台」");
+    return L.join("\n");
+  }
+
+  function copyText(t) {
+    function ok() { showToast("配方已复制，去粘贴分享吧"); }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); ok(); }
+      catch (e) { showToast("复制失败，请手动选择文本复制"); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(ok).catch(fallback);
+    } else fallback();
+  }
+
+  function wrapLines(ctx, text, maxWidth) {
+    var lines = [];
+    var line = "";
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (ctx.measureText(line + ch).width > maxWidth && line) {
+        lines.push(line);
+        line = ch;
+      } else line += ch;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function drawShareCard(p, servings) {
+    var r = p.r;
+    var W = 750;
+    var cv = document.createElement("canvas");
+    cv.width = W;
+    var ctx = cv.getContext("2d");
+
+    var ingList = p.ings.slice(0, 7);
+
+    ctx.font = "bold 52px 'PingFang SC','Microsoft YaHei',sans-serif";
+    var nameLines = wrapLines(ctx, r.name, 600).slice(0, 2);
+    ctx.font = "21px 'PingFang SC',sans-serif";
+    var garnishLines = wrapLines(ctx, "装饰：" + p.garnishText, 610).slice(0, 2);
+    ctx.font = "22px 'PingFang SC',sans-serif";
+    var stepGroups = r.steps.map(function (st) { return wrapLines(ctx, st, 580).slice(0, 2); });
+    var stepRows = stepGroups.reduce(function (n, g) { return n + g.length; }, 0);
+
+    var endY = 150 + nameLines.length * 62 + 56 + 66 + 24 + 46 + 18;
+    endY += 44 * ingList.length;
+    endY += 40 + 30 * garnishLines.length + 14 + 42 + 14;
+    endY += 34 * stepRows;
+
+    var footLineY = endY + 34;
+    var H = Math.max(820, endY + 140);
+    cv.height = H;
+
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#0c1f1a");
+    bg.addColorStop(1, "#060d0b");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = "rgba(212,175,106,0.75)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(28, 28, W - 56, H - 56);
+    ctx.strokeStyle = "rgba(212,175,106,0.28)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(38, 38, W - 76, H - 76);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(236,211,154,0.85)";
+    ctx.font = "20px Georgia, serif";
+    ctx.fillText("H O M E　B A R　·　家 庭 调 酒 台", W / 2, 92);
+
+    var y = 150;
+    ctx.fillStyle = "#ecd39a";
+    ctx.font = "bold 52px 'PingFang SC','Microsoft YaHei',sans-serif";
+    nameLines.forEach(function (ln) { ctx.fillText(ln, W / 2, y); y += 62; });
+
+    ctx.fillStyle = "rgba(242,237,225,0.55)";
+    ctx.font = "italic 26px Georgia, serif";
+    ctx.fillText(r.en + (r.creative ? " · House Creation" : ""), W / 2, y + 6);
+    y += 56;
+
+    var tagW = 0, gap = 14, tw = [];
+    ctx.font = "20px 'PingFang SC',sans-serif";
+    r.tags.slice(0, 5).forEach(function (t) {
+      var w = ctx.measureText(t).width + 40;
+      tw.push(w); tagW += w;
+    });
+    tagW += gap * Math.max(0, tw.length - 1);
+    var tx = (W - tagW) / 2;
+    r.tags.slice(0, 5).forEach(function (t, i) {
+      var c = TAG_COLORS[t] || "#d4af6a";
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(tx, y, tw[i], 36, 18); else ctx.rect(tx, y, tw[i], 36);
+      ctx.fillStyle = c + "22"; ctx.fill();
+      ctx.strokeStyle = c + "99"; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.fillStyle = c; ctx.textAlign = "center";
+      ctx.fillText(t, tx + tw[i] / 2, y + 25);
+      tx += tw[i] + gap;
+    });
+    y += 66;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(242,237,225,0.7)";
+    ctx.font = "22px 'PingFang SC',sans-serif";
+    ctx.fillText(r.glass + "　｜　" + r.method + "　｜　" + STRENGTH[r.strength], W / 2, y);
+    y += 24;
+    ctx.strokeStyle = "rgba(212,175,106,0.4)";
+    ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(W - 70, y); ctx.stroke();
+
+    y += 46;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#ecd39a";
+    ctx.font = "bold 26px 'PingFang SC',sans-serif";
+    ctx.fillText(ingTitle(servings, ingsMlPerCup(p.ings)), 70, y);
+    y += 18;
+    ctx.font = "24px 'PingFang SC',sans-serif";
+    ingList.forEach(function (ing) {
+      y += 44;
+      ctx.fillStyle = "rgba(242,237,225,0.92)";
+      var label = itemNameOf(ing.item, p.names) + (ing.optional ? "（可选）" : "");
+      ctx.fillText(label, 70, y);
+      ctx.fillStyle = "rgba(212,175,106,0.95)";
+      ctx.textAlign = "right";
+      ctx.fillText(scaleAmount(ing.amount, servings), W - 70, y);
+      ctx.textAlign = "left";
+    });
+    y += 40;
+    ctx.fillStyle = "rgba(242,237,225,0.5)";
+    ctx.font = "21px 'PingFang SC',sans-serif";
+    garnishLines.forEach(function (ln) { ctx.fillText(ln, 70, y); y += 30; });
+
+    y += 14;
+    ctx.strokeStyle = "rgba(212,175,106,0.28)";
+    ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(W - 70, y); ctx.stroke();
+    y += 42;
+    ctx.fillStyle = "#ecd39a";
+    ctx.font = "bold 26px 'PingFang SC',sans-serif";
+    ctx.fillText("调制步骤", 70, y);
+    y += 14;
+    ctx.font = "22px 'PingFang SC',sans-serif";
+    r.steps.forEach(function (st, i) {
+      var lines = stepGroups[i];
+      lines.forEach(function (ln, li) {
+        y += 34;
+        if (li === 0) {
+          ctx.fillStyle = "#ecd39a";
+          ctx.fillText(String(i + 1), 70, y);
+        }
+        ctx.fillStyle = "rgba(242,237,225,0.78)";
+        ctx.fillText(ln, 104, y);
+      });
+    });
+
+    ctx.strokeStyle = "rgba(212,175,106,0.4)";
+    ctx.beginPath(); ctx.moveTo(70, footLineY); ctx.lineTo(W - 70, footLineY); ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(242,237,225,0.4)";
+    ctx.font = "18px 'PingFang SC',sans-serif";
+    ctx.fillText("理性饮酒 · 未成年人请勿饮酒 · 酒后请勿驾车", W / 2, footLineY + 32);
+    ctx.fillStyle = "rgba(212,175,106,0.85)";
+    ctx.font = "18px Georgia, serif";
+    ctx.fillText("home-bar-6e7c.surge.sh", W / 2, footLineY + 58);
+
+    return cv.toDataURL("image/png");
+  }
+
+  var SITE_URL = "https://home-bar-6e7c.surge.sh/";
+  function shareUrl() {
+    var h = location.hostname;
+    if (!h || h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "[::1]") return SITE_URL;
+    return location.origin + location.pathname;
+  }
+
+  function drawQR(ctx, url, x0, y0, size) {
+    var qr = window.qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    var n = qr.getModuleCount();
+    var quiet = 4;
+    var cell = size / (n + quiet * 2);
+    var ox = x0 + quiet * cell;
+    var oy = y0 + quiet * cell;
+    ctx.fillStyle = "#101413";
+    for (var r = 0; r < n; r++) {
+      for (var c = 0; c < n; c++) {
+        if (qr.isDark(r, c)) ctx.fillRect(Math.floor(ox + c * cell), Math.floor(oy + r * cell), Math.ceil(cell), Math.ceil(cell));
+      }
+    }
+  }
+
+  function drawSiteCard() {
+    var W = 750, H = 1180;
+    var cv = document.createElement("canvas");
+    cv.width = W;
+    cv.height = H;
+    var ctx = cv.getContext("2d");
+
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#0c1f1a");
+    bg.addColorStop(1, "#060d0b");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = "rgba(212,175,106,0.75)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(28, 28, W - 56, H - 56);
+    ctx.strokeStyle = "rgba(212,175,106,0.28)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(38, 38, W - 76, H - 76);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(236,211,154,0.85)";
+    ctx.font = "20px Georgia, serif";
+    ctx.fillText("H O M E　B A R　·　家 庭 调 酒 台", W / 2, 96);
+
+    ctx.fillStyle = "#ecd39a";
+    ctx.font = "bold 54px 'PingFang SC','Microsoft YaHei',sans-serif";
+    ctx.fillText("今晚想喝点什么？", W / 2, 214);
+
+    ctx.fillStyle = "rgba(242,237,225,0.72)";
+    ctx.font = "25px 'PingFang SC',sans-serif";
+    ctx.fillText("勾选家里现有的基酒与配料", W / 2, 282);
+    ctx.fillText("立刻知道今晚能调哪几杯", W / 2, 322);
+
+    ctx.strokeStyle = "rgba(212,175,106,0.4)";
+    ctx.beginPath(); ctx.moveTo(150, 372); ctx.lineTo(W - 150, 372); ctx.stroke();
+
+    var points = [
+      "只用你酒柜里有的材料，绝不擅自加配料",
+      "经典配方 + 创意特调，用量按杯自动换算",
+      "拍张照识别酒柜，还能收藏、生成分享图"
+    ];
+    ctx.font = "24px 'PingFang SC',sans-serif";
+    points.forEach(function (pt, i) {
+      var y = 448 + i * 62;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#d4af6a";
+      ctx.font = "bold 24px Georgia, serif";
+      ctx.fillText("✓", 102, y);
+      ctx.fillStyle = "rgba(242,237,225,0.92)";
+      ctx.font = "24px 'PingFang SC',sans-serif";
+      ctx.fillText(pt, W / 2 + 20, y);
+    });
+
+    var panelX = 185, panelY = 612, panelW = 380, panelH = 380;
+    ctx.fillStyle = "#f7f3e8";
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(panelX, panelY, panelW, panelH, 20); else ctx.rect(panelX, panelY, panelW, panelH);
+    ctx.fill();
+    drawQR(ctx, shareUrl(), panelX + 40, panelY + 40, 300);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(242,237,225,0.78)";
+    ctx.font = "23px 'PingFang SC',sans-serif";
+    ctx.fillText("微信 / 相机扫一扫，立即进入", W / 2, 1048);
+    ctx.fillStyle = "#ecd39a";
+    ctx.font = "bold 28px Georgia, 'PingFang SC', serif";
+    ctx.fillText("home-bar-6e7c.surge.sh", W / 2, 1094);
+
+    ctx.fillStyle = "rgba(242,237,225,0.4)";
+    ctx.font = "18px 'PingFang SC',sans-serif";
+    ctx.fillText("理性饮酒 · 未成年人请勿饮酒 · 酒后请勿驾车", W / 2, H - 42);
+
+    return cv.toDataURL("image/png");
+  }
+
+  function siteShareText() {
+    return [
+      "【家庭调酒台 Home Bar】",
+      "勾选家里现有的酒和配料，立刻知道今晚能调哪几杯",
+      "✓ 只用你酒柜里有的材料，绝不擅自加配料",
+      "✓ 经典配方 + 创意特调，用量按杯自动换算",
+      "✓ 拍张照识别酒柜，还能收藏配方、生成分享图",
+      "微信 / 相机扫码进入，或点链接：",
+      shareUrl(),
+      "理性饮酒 · 未成年人请勿饮酒 · 酒后请勿驾车"
+    ].join("\n");
+  }
+
+  var sharePayload = null;
+  function openShare(card) {
+    var p = card._payload;
+    sharePayload = { type: "recipe", p: p, servings: card._servings };
+    $("shareTitle").textContent = "分享这杯酒";
+    $("shareImg").src = drawShareCard(p, card._servings);
+    $("shareModal").hidden = false;
+  }
+
+  function openSiteShare() {
+    sharePayload = { type: "site" };
+    $("shareTitle").textContent = "分享给酒友";
+    $("shareImg").src = drawSiteCard();
+    $("shareModal").hidden = false;
+  }
+
+  function copyShareImage() {
+    var src = $("shareImg").src;
+    function failHint() {
+      showToast("当前浏览器不支持自动复制图片，请长按图片保存后发送");
+    }
+    if (!src || !(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem)) {
+      failHint();
+      return;
+    }
+    var job;
+    try {
+      job = fetch(src)
+        .then(function (r) { return r.blob(); })
+        .then(function (blob) {
+          return navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        });
+    } catch (e) { failHint(); return; }
+    job.then(function () {
+      showToast("图片已复制，去聊天框直接粘贴即可");
+      $("shareModal").hidden = true;
+    }).catch(failHint);
+  }
+
+  function wireCardContainer(container) {
+    container.addEventListener("click", function (e) {
+      var actEl = e.target.closest("[data-act]");
+      if (!actEl) return;
+      var card = actEl.closest(".recipe-card");
+      if (!card || !card.contains(actEl) || !card._payload) return;
+      var p = card._payload;
+      var act = actEl.dataset.act;
+
+      if (act === "step") {
+        actEl.classList.toggle("done");
+        refreshStepProgress(card);
+      } else if (act === "svminus" || act === "svplus") {
+        card._servings = Math.max(1, Math.min(6, card._servings + (act === "svplus" ? 1 : -1)));
+        applyServings(card);
+      } else if (act === "fav") {
+        var nowFav = toggleFav(p.r);
+        if (p.favMode) {
+          renderFavs();
+          showToast(nowFav ? "已收藏" : "已取消收藏");
+        } else {
+          refreshFavBtn(card);
+          showToast(nowFav ? "已加入我的收藏" : "已取消收藏");
+        }
+      } else if (act === "copy") {
+        copyText(recipeText(p, card._servings));
+      } else if (act === "share") {
+        openShare(card);
+      }
+    });
+  }
+
+  function renderFavs() {
+    var box = $("favList");
+    box.innerHTML = "";
+    var keys = Object.keys(favs).sort(function (a, b) { return favs[b].at - favs[a].at; });
+    if (!keys.length) {
+      box.innerHTML = '<div class="fav-empty">还没有收藏的配方<br>在任意配方卡片上点「♡ 收藏」，喜欢的酒就会收在这里</div>';
+      return;
+    }
+    keys.forEach(function (k, i) {
+      var f = favs[k];
+      box.appendChild(renderCard({ recipe: f.r, missing: [], score: 0 }, i, { favMode: true, names: f.names }));
+    });
+  }
+
+  // ---------- 拍照识别酒柜 ----------
+  var TESS_CDNS = [
+    {
+      script: "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",
+      workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js",
+      corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1",
+      langPath: "https://tessdata.projectnaptha.com/4.0.0",
+      langs: "eng+chi_sim"
+    },
+    {
+      script: "https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js",
+      workerPath: "https://unpkg.com/tesseract.js@5.1.1/dist/worker.min.js",
+      corePath: "https://unpkg.com/tesseract.js-core@5.1.1",
+      langPath: "https://tessdata.projectnaptha.com/4.0.0",
+      langs: "eng+chi_sim"
+    },
+    {
+      script: "https://registry.npmmirror.com/tesseract.js/5.1.1/files/dist/tesseract.min.js",
+      workerPath: "https://registry.npmmirror.com/tesseract.js/5.1.1/files/dist/worker.min.js",
+      corePath: "https://registry.npmmirror.com/tesseract.js-core/5.1.1/files",
+      langPath: "https://tessdata.projectnaptha.com/4.0.0",
+      langs: "eng+chi_sim"
+    }
+  ];
+
+  var ALIASES = {
+    vodka: ["vodka", "伏特加", "smirnoff", "absolut", "skyy", "斯米诺", "皇冠伏特"],
+    gin: ["gin", "金酒", "琴酒", "杜松子", "tanqueray", "bombay", "beefeater", "gordon", "hendrick", "添加利", "孟买", "london dry"],
+    white_rum: ["white rum", "silver rum", "light rum", "blanco rum", "白朗姆", "bacardi", "百加得", "havana club", "carta blanca"],
+    dark_rum: ["dark rum", "black rum", "gold rum", "anejo", "黑朗姆", "myers", "captain morgan", "摩根船长", "摩根"],
+    tequila: ["tequila", "tiquila", "龙舌兰", "patron", "cuervo", "sauza", "olmeca", "奥美加", "豪帅", "培恩", "karka", "唐胡里奥", "don julio", "jose cuervo", "1800", "avion", "clase azul"],
+    whiskey: ["whisky", "whiskey", "whsky", "wnisky", "wni sky", "seotch", "scotch", "bourbon", "波本", "威士忌", "jack daniel", "daniels", "jim beam", "占边", "johnnie walker", "chivas", "ballantine", "makers mark", "macallan", "麦卡伦", "glen"],
+    brandy: ["brandy", "cognac", "白兰地", "干邑", "hennessy", "轩尼诗", "remy martin", "人头马", "martell", "马爹利", "courvoisier"],
+    baijiu: ["baijiu", "白酒", "燒酒", "烧酒", "moutai", "maotai", "茅台", "茅臺", "wuliangye", "五粮液", "五糧液", "guojiao", "国窖", "國窖", "luzhou", "泸州老窖", "瀘州老窖", "汾酒", "jiannanchun", "剑南春", "劍南春", "yanghe", "洋河", "shuijingfang", "水井坊", "langjiu", "郎酒", "xifeng", "西凤", "gujing", "古井贡", "古井貢", "zhijiang", "枝江", "gaogou", "高沟", "shuanggou", "双沟"],
+    wine: ["wine", "葡萄酒", "红酒", "红葡萄酒", "白葡萄酒", "great wall", "changyu", "长城", "张裕", "cabernet", "赤霞珠", "解百纳", "merlot", "梅洛", "美乐", "chardonnay", "霞多丽", "riesling", "雷司令", "pinot", "黑皮诺", "shiraz", "syrah", "西拉", "sauvignon", "长相思", "semillon", "赛美蓉"],
+    prosecco: ["prosecco", "普罗塞克", "起泡酒", "起泡葡萄酒", "champagne", "香槟", "sparkling wine", "cava"],
+    cointreau: ["cointreau", "君度", "triple sec", "grand marnier", "柑曼怡", "橙味利口"],
+    campari: ["campari", "金巴利", "甘巴利"],
+    aperol: ["aperol", "阿佩罗"],
+    sweet_vermouth: ["sweet vermouth", "vermouth rosso", "甜苦艾", "苦艾酒", "noilly prat"],
+    dry_vermouth: ["dry vermouth", "extra dry", "干苦艾"],
+    kahlua: ["kahlua", "甘露咖啡", "咖啡利口", "coffee liqueur"],
+    baileys: ["baileys", "bailey", "百利"],
+    malibu: ["malibu", "马里布"],
+    peach: ["peachtree", "peach liqueur", "水蜜桃利口", "桃味利口", "蜜桃利口"],
+    amaretto: ["amaretto", "disaronno", "杏仁利口"],
+    blue_curacao: ["blue curacao", "bols blue", "蓝橙", "蓝柑"],
+    simple: ["simple syrup", "单糖浆", "白砂糖浆"],
+    grenadine: ["grenadine", "红石榴", "石榴糖浆"],
+    honey: ["honey", "蜂蜜"],
+    elderflower: ["elderflower", "elder flower", "接骨木"],
+    passionfruit: ["passion fruit", "passionfruit", "passion-fruit", "百香果"],
+    lemon: ["lemon juice", "柠檬汁", "lemon", "柠檬"],
+    lime: ["lime juice", "青柠", "lime"],
+    orange: ["orange juice", "橙汁", "orange"],
+    cranberry: ["cranberry", "蔓越莓"],
+    pineapple: ["pineapple", "菠萝"],
+    grapefruit: ["grapefruit", "西柚", "葡萄柚"],
+    cola: ["cola", "coca", "coke", "pepsi", "可乐"],
+    ginger_ale: ["ginger ale", "ginger beer", "干姜水", "姜汁"],
+    tonic: ["tonic", "汤力", "schweppes", "watsons", "屈臣氏"],
+    soda: ["soda water", "club soda", "sparkling water", "seltzer", "苏打水", "soda"],
+    coconut: ["coconut milk", "coconut cream", "coco lopez", "椰奶", "椰汁"],
+    cream: ["heavy cream", "whipping cream", "淡奶油", "牛奶", "milk"],
+    mint: ["mint", "薄荷"],
+    lemon_fresh: ["新鲜柠檬", "鲜柠檬", "lemon", "柠檬"]
+  };
+
+  var STOPWORDS = new Set(("THE AND WITH FOR FROM THIS THAT YOU YOUR ARE INGREDIENTS PRODUCT CONTENT NET VOL ALC ALCOHOL IMPORTED SERVING ABOUT BOTTLE LIQUEUR SPIRIT SPIRITS DRINK FLAVOR FLAVOUR QUALITY SINCE FINE BEST PURE FRESH WORLD FAMILY ORIGINAL CLASSIC RECIPE TASTE MADE SELECTED PREMIUM DISTILLED DISTILLERY COMPANY LIMITED INTERNATIONAL TRADE MARK SUPERIOR SPECIAL RESERVE EXTRA DRY WHITE BLACK GOLD RED BLUE GREEN SILVER FRUIT JUICE WATER SYRUP SUGAR NATURAL FLAVORED FLAVOURED OF COCKTAIL MIXER IMPORT SELECTION AUTHENTIC TRADITIONAL PERFECT ENJOY SERVE CHILLED GLASS SHAKE STIR POUR MEASURE PLEASE READ LABEL INFO WWW HTTP HTTPS COM SIZE MINUTES HOURS YEAR YEARS AWARD WINNING").split(" "));
+
+  function loadScript(url) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = url;
+      s.onload = resolve;
+      s.onerror = function () {
+        fetch(url)
+          .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.text(); })
+          .then(function (code) {
+            var el = document.createElement("script");
+            el.textContent = code;
+            document.head.appendChild(el);
+            resolve();
+          })
+          .catch(function () { reject(new Error("script load failed: " + url)); });
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  var tessLoading = null;
+
+  var OCR_API_URL = "";
+  function setOcrApiUrl(url) { OCR_API_URL = (url || "").replace(/\/$/, ""); }
+
+  function fileToDataURI(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(r.result); };
+      r.onerror = function () { reject(new Error("read fail")); };
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function runRemoteOCR(file) {
+    if (!OCR_API_URL) throw new Error("no api");
+    setOcrProgress(0.1, "正在上传照片至 OCR 服务…");
+    var fd = new FormData();
+    fd.append("file", file);
+    var resp = await fetch(OCR_API_URL + "/ocr", {
+      method: "POST",
+      body: fd,
+      headers: { "bypass-tunnel-reminder": "true" }
+    });
+    if (!resp.ok) throw new Error("api " + resp.status);
+    return await resp.json();
+  }
+
+  function applyRemoteOcrResult(data) {
+    var matched = [];
+    var unknown = [];
+    (data.bottles || []).forEach(function (b) {
+      (b.matches || []).forEach(function (m) {
+        if (matched.indexOf(m.id) === -1) matched.push(m.id);
+      });
+      if (!(b.matches && b.matches.length)) {
+        var name = b.name_hint || "";
+        if (name && unknown.indexOf(name) === -1) unknown.push(name);
+      }
+    });
+    matched.forEach(function (id) { state.inv[id] = true; });
+    save();
+    renderCats();
+    updateCount();
+
+    if (unknown.length) {
+      openUnknownModal(unknown.slice(0, 8), matched.length);
+    } else if (matched.length) {
+      showToast("识别完成，已自动勾选 " + matched.length + " 种酒");
+      generate();
+    } else {
+      showToast("没有识别出可匹配的酒，可手动点「＋ 添加」录入");
+    }
+  }
+
+  function ensureTesseract() {
+    if (window.Tesseract) return Promise.resolve();
+    if (!tessLoading) {
+      tessLoading = (async function () {
+        for (var i = 0; i < TESS_CDNS.length; i++) {
+          try {
+            await loadScript(TESS_CDNS[i].script);
+            if (window.Tesseract) return;
+          } catch (e) {}
+        }
+        throw new Error("tesseract script unavailable on all CDNs");
+      })();
+    }
+    return tessLoading;
+  }
+
+  function setOcrProgress(p, text) {
+    $("ocrBar").hidden = false;
+    if (text) $("ocrText").textContent = text;
+    $("ocrFill").style.width = Math.round(p * 100) + "%";
+  }
+  function hideOcrProgress() { $("ocrBar").hidden = true; }
+
+  function createOcrWorker(cfg, logger) {
+    return Tesseract.createWorker(cfg.langs, 1, {
+      workerPath: cfg.workerPath,
+      corePath: cfg.corePath,
+      langPath: cfg.langPath,
+      logger: logger
+    });
+  }
+
+  async function runTesseractOCR(file) {
+    setOcrProgress(0.05, "正在加载本地识别组件（首次需下载语言包）…");
+    await ensureTesseract();
+    var worker = null, lastErr = null;
+    for (var i = 0; i < TESS_CDNS.length; i++) {
+      try {
+        setOcrProgress(0.1, "正在加载识别语言包…");
+        worker = await createOcrWorker(TESS_CDNS[i], function (m) {
+          if (m.status === "recognizing text") {
+            setOcrProgress(0.25 + m.progress * 0.7, "正在识别照片中的酒瓶标签… " + Math.round(m.progress * 100) + "%");
+          }
+        });
+        break;
+      } catch (e) { lastErr = e; }
+    }
+    if (!worker) throw lastErr || new Error("ocr init failed");
+    setOcrProgress(0.25, "正在识别照片中的酒瓶标签…");
+    var ret = await worker.recognize(file);
+    await worker.terminate();
+    return (ret.data && ret.data.text) || "";
+  }
+
+  async function handlePhoto(file) {
+    try {
+      if (OCR_API_URL) {
+        try {
+          var data = await runRemoteOCR(file);
+          applyRemoteOcrResult(data);
+          return;
+        } catch (e) {
+          console.warn("Remote OCR failed, falling back to Tesseract:", e.message);
+          setOcrProgress(0.05, "高精度 OCR 不可用，切换本地识别…");
+        }
+      }
+      var text = await runTesseractOCR(file);
+      applyOcrResult(text);
+    } catch (e) {
+      hideOcrProgress();
+      showToast("识别组件加载失败，请检查网络，或直接点「＋ 添加」手动录入");
+    }
+  }
+
+  function matchOcr(text) {
+    var hay = " " + text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, " ") + " ";
+    var hayCjk = hay.replace(/\s+/g, "");
+    function hit(alias) {
+      alias = alias.toLowerCase();
+      if (/[\u4e00-\u9fa5]/.test(alias)) return hayCjk.indexOf(alias) !== -1;
+      var pat = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+      return new RegExp("(^|\\s)" + pat + "(\\s|$)").test(hay);
+    }
+    var matched = [];
+    Object.keys(ALIASES).forEach(function (id) {
+      if (ALIASES[id].some(hit)) matched.push(id);
+    });
+    Object.keys(NAME).forEach(function (id) {
+      if (!isCustomId(id)) return;
+      var nm = NAME[id].toLowerCase();
+      if (/[\u4e00-\u9fa5]/.test(nm)) { if (hayCjk.indexOf(nm) !== -1) matched.push(id); }
+      else if (hit(nm)) matched.push(id);
+    });
+    return matched.filter(function (v, i, a) { return a.indexOf(v) === i; });
+  }
+
+  function extractCandidates(raw) {
+    var aliasWords = {};
+    Object.keys(ALIASES).forEach(function (id) {
+      ALIASES[id].forEach(function (a) {
+        a.toUpperCase().split(/[^A-Z]+/).forEach(function (w) { if (w.length >= 3) aliasWords[w] = true; });
+      });
+    });
+    var toks = (raw.match(/[A-Za-z][A-Za-z'&.]{2,}/g) || []).map(function (w) {
+      var letters = w.replace(/[^A-Za-z]/g, "");
+      var labelLike = w === w.toUpperCase() || /^[A-Z][a-z]+/.test(w);
+      return { up: letters.toUpperCase(), labelLike: labelLike };
+    }).filter(function (t) {
+      return t.labelLike && t.up.length >= 4 && !STOPWORDS.has(t.up) && !aliasWords[t.up];
+    });
+    var cands = {};
+    for (var i = 0; i < toks.length; i++) {
+      var u = toks[i].up;
+      cands[u] = true;
+      if (i + 1 < toks.length && toks[i + 1].labelLike) {
+        var bi = u + " " + toks[i + 1].up;
+        if (bi.length <= 22) cands[bi] = true;
+      }
+    }
+    var list = Object.keys(cands).sort(function (a, b) { return b.length - a.length; });
+    var picked = [];
+    list.forEach(function (c) {
+      if (picked.length >= 8) return;
+      if (picked.some(function (p) { return p.indexOf(c) !== -1 || (c.indexOf(p) !== -1 && Math.abs(c.length - p.length) <= 3); })) return;
+      picked.push(c);
+    });
+    return picked;
+  }
+
+  function applyOcrResult(text) {
+    hideOcrProgress();
+    var matched = matchOcr(text);
+    matched.forEach(function (id) { state.inv[id] = true; });
+    save();
+    renderCats();
+    updateCount();
+
+    var cands = extractCandidates(text);
+    var matchedPhrases = matched.filter(isCustomId).map(function (id) {
+      return NAME[id].toLowerCase().replace(/\s+/g, " ").trim();
+    });
+    if (matchedPhrases.length) {
+      cands = cands.filter(function (c) {
+        var cl = c.toLowerCase();
+        return !matchedPhrases.some(function (p) {
+          var pat = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+          return new RegExp("(^|\\s)" + pat + "(\\s|$)").test(" " + cl + " ");
+        });
+      });
+    }
+    if (cands.length) {
+      openUnknownModal(cands, matched.length);
+    } else if (matched.length) {
+      showToast("识别完成，已自动勾选 " + matched.length + " 种酒");
+      generate();
+    } else {
+      showToast("没有识别出可匹配的酒，可手动点「＋ 添加」录入");
+    }
+  }
+
+  var MODAL_CATS = [["base", "基酒"], ["liqueur", "利口酒"], ["syrup", "糖浆"], ["mixer", "软饮"]];
+
+  function openUnknownModal(cands, matchedCount) {
+    var rows = $("modalRows");
+    rows.innerHTML = "";
+    $("modalIntro").textContent = "已自动勾选 " + (matchedCount || 0) + " 种清单内的酒。以下 " +
+      cands.length + " 种未收录，勾选并选择分类后可加入你的酒柜清单（也可修改名称）：";
+    cands.forEach(function (name) {
+      var row = document.createElement("div");
+      row.className = "modal-row";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = true;
+      var inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = name;
+      var sel = document.createElement("select");
+      MODAL_CATS.forEach(function (o) {
+        var op = document.createElement("option");
+        op.value = o[0];
+        op.textContent = o[1];
+        sel.appendChild(op);
+      });
+      row.appendChild(cb);
+      row.appendChild(inp);
+      row.appendChild(sel);
+      rows.appendChild(row);
+    });
+    $("modal").hidden = false;
+
+    $("modalOk").onclick = function () {
+      var n = 0;
+      rows.querySelectorAll(".modal-row").forEach(function (row) {
+        var cb = row.querySelector('input[type="checkbox"]');
+        var inp = row.querySelector('input[type="text"]');
+        var sel = row.querySelector("select");
+        if (cb.checked && addCustomItem(sel.value, inp.value, true)) n++;
+      });
+      $("modal").hidden = true;
+      renderCats();
+      updateCount();
+      showToast(n ? "已新增 " + n + " 种酒到清单并勾选" : "识别结果已应用");
+      generate();
+    };
+    $("modalCancel").onclick = function () {
+      $("modal").hidden = true;
+      if (matchedCount) {
+        showToast("识别完成，已自动勾选 " + matchedCount + " 种酒");
+        generate();
+      }
+    };
+  }
+
+  $("genBtn").addEventListener("click", generate);
+  function bindPhotoPick(btnId, inputId) {
+    $(btnId).addEventListener("click", function () { $(inputId).click(); });
+    $(inputId).addEventListener("change", function (e) {
+      var f = e.target.files && e.target.files[0];
+      if (f) handlePhoto(f);
+      e.target.value = "";
+    });
+  }
+  bindPhotoPick("photoBtn", "photoInputCamera");
+  bindPhotoPick("albumBtn", "photoInputAlbum");
+
+  $("shuffleBtn").addEventListener("click", function () {
+    if (pool.length <= 3) return;
+    var prevKeys = {};
+    (curBatch.length ? curBatch : pool.slice(0, 3)).forEach(function (s) {
+      prevKeys[favKey(s.recipe)] = true;
+    });
+    var cand = pool.filter(function (s) { return !prevKeys[favKey(s.recipe)]; });
+    for (var i = cand.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = cand[i]; cand[i] = cand[j]; cand[j] = t;
+    }
+    curBatch = cand.slice(0, Math.min(3, cand.length));
+    renderCards();
+  });
+
+  var searchInput = $("invSearch");
+  searchInput.addEventListener("input", function () {
+    searchQuery = searchInput.value.trim().toLowerCase();
+    $("searchClear").classList.toggle("show", !!searchQuery);
+    renderCats();
+  });
+  $("searchClear").addEventListener("click", function () {
+    searchInput.value = "";
+    searchQuery = "";
+    $("searchClear").classList.remove("show");
+    renderCats();
+    searchInput.focus();
+  });
+
+  $("favEntry").addEventListener("click", function () {
+    var sec = $("favSection");
+    sec.hidden = false;
+    renderFavs();
+    setTimeout(function () { sec.scrollIntoView({ behavior: "smooth", block: "start" }); }, 40);
+  });
+  $("favClose").addEventListener("click", function () {
+    $("favSection").hidden = true;
+  });
+
+  $("dockGen").addEventListener("click", generate);
+  $("dockUp").addEventListener("click", function () {
+    var panel = document.querySelector("section.panel");
+    (panel || $("catList")).scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  function syncDock() {
+    var passed = $("genBtn").getBoundingClientRect().bottom < 0;
+    $("dock").classList.toggle("show", passed);
+  }
+  if ("IntersectionObserver" in window) {
+    var dockIO = new IntersectionObserver(function () { syncDock(); }, { threshold: [0, 1] });
+    dockIO.observe($("genBtn"));
+  }
+  var dockTick = false;
+  window.addEventListener("scroll", function () {
+    if (dockTick) return;
+    dockTick = true;
+    requestAnimationFrame(function () {
+      syncDock();
+      dockTick = false;
+    });
+  }, { passive: true, capture: true });
+  window.addEventListener("scrollend", syncDock, { passive: true });
+  window.addEventListener("resize", syncDock);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) syncDock();
+  });
+  syncDock();
+
+  $("shareDone").addEventListener("click", copyShareImage);
+  $("shareModal").addEventListener("click", function (e) {
+    if (e.target === this) this.hidden = true;
+  });
+  $("shareCopy").addEventListener("click", function () {
+    if (!sharePayload) return;
+    if (sharePayload.type === "site") copyText(siteShareText());
+    else copyText(recipeText(sharePayload.p, sharePayload.servings));
+  });
+  $("siteShareBtn").addEventListener("click", openSiteShare);
+
+  $("demoBtn").addEventListener("click", function () {
+    setAll(false, allIds());
+    setAll(true, DEMO);
+    showToast("已填入一套常见家庭酒柜");
+    generate();
+  });
+  $("clearBtn").addEventListener("click", function () {
+    setAll(false, allIds());
+    $("results").hidden = true;
+    showToast("已清空酒柜");
+  });
+
+  load();
+  loadFavs();
+  var savedApi = localStorage.getItem("ocr-api-url");
+  if (savedApi) setOcrApiUrl(savedApi);
+  renderCats();
+  updateCount();
+  updateFavCount();
+  wireCardContainer($("recipeCards"));
+  wireCardContainer($("favList"));
+  if (Object.keys(state.inv).length >= 2) {
+    generate();
+  }
+  window.setOcrApiUrl = function (url) { setOcrApiUrl(url); localStorage.setItem("ocr-api-url", url || ""); };
+})();
+</script>
+</body>
+</html>
