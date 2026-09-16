@@ -13,6 +13,7 @@ COPY ocr_server.py bottle_ocr.py index.html ./
 
 ENV OCR_ENGINE=rapid
 ENV OCR_MAX_SIDE=1280
+ENV OMP_NUM_THREADS=2
 ENV PORT=7860
 
 EXPOSE 7860

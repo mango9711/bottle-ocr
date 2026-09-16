@@ -20,10 +20,9 @@ import io
 import json
 import os
 import re
-import shutil
-import subprocess
 import sys
 import tempfile
+import threading
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -50,14 +49,33 @@ app.add_middleware(
 )
 
 _OCR = None
+_OCR_READY = False
 _ALIAS_DB = None
+_OCR_LOCK = threading.Lock()
 
 
 def get_ocr():
-    global _OCR
+    global _OCR, _OCR_READY
     if _OCR is None:
-        _OCR = load_ocr()
+        with _OCR_LOCK:
+            if _OCR is None:
+                _OCR = load_ocr()
+                _OCR_READY = True
     return _OCR
+
+
+def _warmup():
+    """后台预热模型，避免首个用户请求承担加载耗时，且不阻塞事件循环/健康检查。"""
+    try:
+        get_ocr()
+    except Exception as e:
+        print("[warn] model warmup failed: %s" % e, file=sys.stderr)
+
+
+@app.on_event("startup")
+def _startup_warmup():
+    get_aliases()
+    threading.Thread(target=_warmup, daemon=True).start()
 
 
 def get_aliases():
@@ -88,9 +106,13 @@ def process_image(image_bytes: bytes):
         tmp.write(image_bytes)
         tmp_path = tmp.name
     try:
-        lines = run_ocr(ocr, tmp_path)
+        with _OCR_LOCK:
+            lines = run_ocr(ocr, tmp_path)
     finally:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
 
     if not lines:
         return {"bottle_count": 0, "bottles": [], "image_size": {"width": img_w, "height": img_h}}
@@ -111,12 +133,13 @@ def process_image(image_bytes: bytes):
 @app.get("/health")
 def health():
     engine_name = "paddleocr" if os.environ.get("OCR_ENGINE", "rapid").lower() == "paddle" else "rapidocr-onnx"
-    return {"status": "ok", "engine": engine_name, "aliases_loaded": get_aliases() is not None}
+    return {"status": "ok", "engine": engine_name,
+            "aliases_loaded": _ALIAS_DB is not None, "model_ready": _OCR_READY}
 
 
 @app.post("/ocr")
-async def ocr_upload(file: UploadFile = File(...)):
-    data = await file.read()
+def ocr_upload(file: UploadFile = File(...)):
+    data = file.file.read()
     if not data:
         raise HTTPException(status_code=400, detail="空文件")
     return process_image(data)
