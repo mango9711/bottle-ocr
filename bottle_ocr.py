@@ -21,8 +21,6 @@ import argparse
 import json
 import os
 import re
-import shutil
-import subprocess
 import sys
 import warnings
 
@@ -281,44 +279,177 @@ def build_bottle(no, idxs, lines):
     }
 
 
-def load_aliases(html_path):
-    """从 index.html 提取 ALIASES 与 id->中文名/分类，返回 dict 或 None。"""
-    node = shutil.which("node") or "/Users/bytedance/.local/node22/bin/node"
-    if not os.path.exists(node):
-        return None
-    script = r"""
-const fs = require('fs');
-const html = fs.readFileSync(process.argv[1], 'utf8');
-function grab(varName) {
-  const start = html.indexOf('var ' + varName);
-  if (start < 0) throw new Error('not found: ' + varName);
-  const eq = html.indexOf('=', start);
-  const open = html.indexOf('{', eq);
-  const openArr = html.indexOf('[', eq);
-  let begin, opener, closer;
-  if (openArr >= 0 && (open < 0 || openArr < open)) { begin = openArr; opener = '['; closer = ']'; }
-  else { begin = open; opener = '{'; closer = '}'; }
-  let depth = 0;
-  for (let i = begin; i < html.length; i++) {
-    const ch = html[i];
-    if (ch === opener) depth++;
-    else if (ch === closer) { depth--; if (depth === 0) return html.slice(begin, i + 1); }
-  }
-  throw new Error('unbalanced: ' + varName);
-}
-const CATS = (new Function('return ' + grab('CATS')))();
-const ALIASES = (new Function('return ' + grab('ALIASES')))();
-const id2name = {}, id2cat = {};
-for (const c of CATS) for (const it of c.items) { id2name[it[0]] = it[1]; id2cat[it[0]] = c.name; }
-process.stdout.write(JSON.stringify({ aliases: ALIASES, id2name, id2cat }));
-"""
-    try:
-        out = subprocess.run([node, "-e", script, html_path],
-                             capture_output=True, text=True, timeout=30)
-        if out.returncode != 0:
-            print("[warn] alias extract failed: " + out.stderr[:200], file=sys.stderr)
+def _grab_literal_block(html, var_name):
+    """定位 `var NAME =` 后首个 { 或 [，按字符串感知的括号配平提取完整字面量文本。"""
+    marker = "var " + var_name
+    start = html.find(marker)
+    if start < 0:
+        raise ValueError("not found: " + var_name)
+    eq = html.find("=", start)
+    i = eq + 1
+    while i < len(html) and html[i] not in "{[":
+        i += 1
+    opener = html[i]
+    closer = "}" if opener == "{" else "]"
+    depth = 0
+    in_str = False
+    quote = ""
+    j = i
+    while j < len(html):
+        ch = html[j]
+        if in_str:
+            if ch == "\\":
+                j += 2
+                continue
+            if ch == quote:
+                in_str = False
+        else:
+            if ch in "\"'":
+                in_str = True
+                quote = ch
+            elif ch == opener:
+                depth += 1
+            elif ch == closer:
+                depth -= 1
+                if depth == 0:
+                    return html[i:j + 1]
+        j += 1
+    raise ValueError("unbalanced literal: " + var_name)
+
+
+class _JSLitParser:
+    """极简 JS 对象/数组字面量解析器（支持裸键名、单双引号字符串、数字、true/false/null）。"""
+
+    def __init__(self, text):
+        self.s = text
+        self.i = 0
+        self.n = len(text)
+
+    def _skip(self):
+        while self.i < self.n and self.s[self.i] in " \t\r\n":
+            self.i += 1
+
+    def parse(self):
+        self._skip()
+        v = self._value()
+        self._skip()
+        return v
+
+    def _value(self):
+        self._skip()
+        ch = self.s[self.i]
+        if ch == "{":
+            return self._object()
+        if ch == "[":
+            return self._array()
+        if ch in "\"'":
+            return self._string()
+        return self._atom()
+
+    def _object(self):
+        obj = {}
+        self.i += 1
+        while True:
+            self._skip()
+            if self.s[self.i] == "}":
+                self.i += 1
+                return obj
+            key = self._string() if self.s[self.i] in "\"'" else self._ident()
+            self._skip()
+            if self.s[self.i] == ":":
+                self.i += 1
+            obj[key] = self._value()
+            self._skip()
+            if self.s[self.i] == ",":
+                self.i += 1
+                continue
+            if self.s[self.i] == "}":
+                self.i += 1
+                return obj
+
+    def _array(self):
+        arr = []
+        self.i += 1
+        while True:
+            self._skip()
+            if self.s[self.i] == "]":
+                self.i += 1
+                return arr
+            arr.append(self._value())
+            self._skip()
+            if self.s[self.i] == ",":
+                self.i += 1
+                continue
+            if self.s[self.i] == "]":
+                self.i += 1
+                return arr
+
+    def _string(self):
+        q = self.s[self.i]
+        self.i += 1
+        buf = []
+        escapes = {"n": "\n", "t": "\t", "r": "\r", "b": "\b", "f": "\f",
+                   "/": "/", "\\": "\\", "'": "'", '"': '"'}
+        while self.i < self.n:
+            ch = self.s[self.i]
+            if ch == "\\":
+                nxt = self.s[self.i + 1]
+                if nxt == "u":
+                    buf.append(chr(int(self.s[self.i + 2:self.i + 6], 16)))
+                    self.i += 6
+                    continue
+                buf.append(escapes.get(nxt, nxt))
+                self.i += 2
+                continue
+            if ch == q:
+                self.i += 1
+                return "".join(buf)
+            buf.append(ch)
+            self.i += 1
+        raise ValueError("unterminated string")
+
+    def _ident(self):
+        m = re.match(r"[A-Za-z_$][A-Za-z0-9_$]*", self.s[self.i:])
+        if not m:
+            raise ValueError("bad identifier at: " + self.s[self.i:self.i + 20])
+        word = m.group(0)
+        self.i += len(word)
+        return word
+
+    def _atom(self):
+        m = re.match(r"-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null|[A-Za-z_$][A-Za-z0-9_$]*",
+                     self.s[self.i:])
+        if not m:
+            raise ValueError("bad atom at: " + self.s[self.i:self.i + 20])
+        word = m.group(0)
+        self.i += len(word)
+        if word == "true":
+            return True
+        if word == "false":
+            return False
+        if word == "null":
             return None
-        return json.loads(out.stdout)
+        try:
+            return int(word) if re.fullmatch(r"-?\d+", word) else float(word)
+        except ValueError:
+            return word
+
+
+def load_aliases(html_path):
+    """纯 Python 从 index.html 提取 ALIASES 与 id->中文名/分类，返回 dict 或 None（无需 Node）。"""
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        cats = _JSLitParser(_grab_literal_block(html, "CATS")).parse()
+        aliases = _JSLitParser(_grab_literal_block(html, "ALIASES")).parse()
+        id2name, id2cat = {}, {}
+        for c in cats:
+            cat_name = c.get("name")
+            for it in c.get("items", []):
+                rid, rname = it[0], it[1]
+                id2name[rid] = rname
+                id2cat[rid] = cat_name
+        return {"aliases": aliases, "id2name": id2name, "id2cat": id2cat}
     except Exception as e:
         print("[warn] alias load skipped: %s" % e, file=sys.stderr)
         return None
