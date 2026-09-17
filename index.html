@@ -270,7 +270,7 @@
   .chip-form .cancel { background: rgba(255, 255, 255, 0.08); color: var(--soft); }
 
   .ocr-bar {
-    margin-top: 18px; background: rgba(255, 255, 255, 0.04);
+    margin: 20px 0 14px; background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 16px;
   }
   .ocr-bar .t { font-size: 13px; color: var(--gold-light); margin-bottom: 8px; }
@@ -333,6 +333,7 @@
     z-index: 99; pointer-events: none;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
+  #dock.show ~ #toast { bottom: 100px; }
 
   footer { text-align: center; margin-top: 40px; font-size: 12px; color: var(--faint); line-height: 1.8; }
 
@@ -515,6 +516,10 @@
         <span class="inv-count">已选 <b id="invCount">0</b> 样</span>
       </div>
     </div>
+    <div class="ocr-bar" id="ocrBar" hidden>
+      <div class="t" id="ocrText">酒柜识别中... ...</div>
+      <div class="ocr-track"><i id="ocrFill"></i></div>
+    </div>
     <div class="inv-toolbar">
       <div class="search-box">
         <span class="ico">🔍</span>
@@ -525,10 +530,6 @@
     </div>
     <div id="catList"></div>
     <div class="search-empty" id="searchEmpty">没有匹配的原料，可在对应分类点「＋ 添加」手动加入</div>
-    <div class="ocr-bar" id="ocrBar" hidden>
-      <div class="t" id="ocrText">正在识别…</div>
-      <div class="ocr-track"><i id="ocrFill"></i></div>
-    </div>
     <input type="file" id="photoInputCamera" accept="image/*" capture="environment" hidden>
     <input type="file" id="photoInputAlbum" accept="image/*" hidden>
   </section>
@@ -581,6 +582,8 @@
   <button class="dock-btn" id="dockGen" type="button">生成今晚的酒单</button>
   <button class="dock-up" id="dockUp" type="button" title="回到酒柜">↑</button>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <div class="modal" id="shareModal" hidden>
   <div class="modal-card share-card">
@@ -1541,6 +1544,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   function showToast(text) {
     var t = $("toast");
+    if (!t) return;
     t.textContent = text;
     t.classList.add("show");
     clearTimeout(showToast._t);
@@ -2479,7 +2483,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     tequila: ["tequila", "tiquila", "龙舌兰", "patron", "cuervo", "sauza", "olmeca", "奥美加", "豪帅", "培恩", "karka", "唐胡里奥", "don julio", "jose cuervo", "1800", "avion", "clase azul"],
     whiskey: ["whisky", "whiskey", "whsky", "wnisky", "wni sky", "seotch", "scotch", "bourbon", "波本", "威士忌", "jack daniel", "daniels", "jim beam", "占边", "johnnie walker", "chivas", "ballantine", "makers mark", "macallan", "麦卡伦", "glen"],
     brandy: ["brandy", "cognac", "白兰地", "干邑", "hennessy", "轩尼诗", "remy martin", "人头马", "martell", "马爹利", "courvoisier"],
-    baijiu: ["baijiu", "白酒", "燒酒", "烧酒", "moutai", "maotai", "茅台", "茅臺", "wuliangye", "五粮液", "五糧液", "guojiao", "国窖", "國窖", "luzhou", "泸州老窖", "瀘州老窖", "汾酒", "jiannanchun", "剑南春", "劍南春", "yanghe", "洋河", "shuijingfang", "水井坊", "langjiu", "郎酒", "xifeng", "西凤", "gujing", "古井贡", "古井貢", "zhijiang", "枝江", "gaogou", "高沟", "shuanggou", "双沟"],
+    baijiu: ["baijiu", "白酒", "燒酒", "烧酒", "moutai", "maotai", "茅台", "茅臺", "wuliangye", "五粮液", "五糧液", "guojiao", "国窖", "國窖", "1573", "luzhou", "泸州老窖", "瀘州老窖", "汾酒", "jiannanchun", "剑南春", "劍南春", "yanghe", "洋河", "shuijingfang", "水井坊", "langjiu", "郎酒", "xifeng", "西凤", "gujing", "古井贡", "古井貢", "zhijiang", "枝江", "gaogou", "高沟", "shuanggou", "双沟"],
     wine: ["wine", "葡萄酒", "红酒", "红葡萄酒", "白葡萄酒", "great wall", "changyu", "长城", "张裕", "cabernet", "赤霞珠", "解百纳", "merlot", "梅洛", "美乐", "chardonnay", "霞多丽", "riesling", "雷司令", "pinot", "黑皮诺", "shiraz", "syrah", "西拉", "sauvignon", "长相思", "semillon", "赛美蓉"],
     prosecco: ["prosecco", "普罗塞克", "起泡酒", "起泡葡萄酒", "champagne", "香槟", "sparkling wine", "cava"],
     cointreau: ["cointreau", "君度", "triple sec", "grand marnier", "柑曼怡", "橙味利口"],
@@ -2538,7 +2542,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   var tessLoading = null;
 
-  var OCR_API_URL = "";
+  var OCR_API_URL = "https://bottle-ocr.onrender.com";
+  var OCR_API_TIMEOUT = 110000;
   function setOcrApiUrl(url) { OCR_API_URL = (url || "").replace(/\/$/, ""); }
 
   function fileToDataURI(file) {
@@ -2550,21 +2555,59 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
   }
 
+  function compressImageForOcr(file) {
+    return new Promise(function (resolve) {
+      if (!/^image\//.test(file.type)) { resolve(file); return; }
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var maxSide = 1280;
+        var w = img.naturalWidth, h = img.naturalHeight, longest = Math.max(w, h);
+        if (!longest || longest <= maxSide) { resolve(file); return; }
+        var s = maxSide / longest;
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.round(w * s);
+        canvas.height = Math.round(h * s);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          resolve(blob && blob.size < file.size ? blob : file);
+        }, "image/jpeg", 0.9);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
   async function runRemoteOCR(file) {
     if (!OCR_API_URL) throw new Error("no api");
-    setOcrProgress(0.1, "正在上传照片至 OCR 服务…");
+    setOcrProgress(0.08, "酒柜识别中... ...");
+    var blob = await compressImageForOcr(file);
     var fd = new FormData();
-    fd.append("file", file);
-    var resp = await fetch(OCR_API_URL + "/ocr", {
-      method: "POST",
-      body: fd,
-      headers: { "bypass-tunnel-reminder": "true" }
-    });
-    if (!resp.ok) throw new Error("api " + resp.status);
-    return await resp.json();
+    fd.append("file", blob, "bottle.jpg");
+    setOcrProgress(0.18, "酒柜识别中... ...");
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, OCR_API_TIMEOUT);
+    var hintTimer = setTimeout(function () {
+      setOcrProgress(0.4, "酒柜识别中... ...");
+    }, 8000);
+    try {
+      var resp = await fetch(OCR_API_URL + "/ocr", {
+        method: "POST",
+        body: fd,
+        signal: ctrl.signal,
+        headers: { "bypass-tunnel-reminder": "true" }
+      });
+      if (!resp.ok) throw new Error("api " + resp.status);
+      return await resp.json();
+    } finally {
+      clearTimeout(timer);
+      clearTimeout(hintTimer);
+    }
   }
 
   function applyRemoteOcrResult(data) {
+    hideOcrProgress();
     var matched = [];
     var unknown = [];
     (data.bottles || []).forEach(function (b) {
@@ -2624,22 +2667,22 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   async function runTesseractOCR(file) {
-    setOcrProgress(0.05, "正在加载本地识别组件（首次需下载语言包）…");
+    setOcrProgress(0.05, "酒柜识别中... ...");
     await ensureTesseract();
     var worker = null, lastErr = null;
     for (var i = 0; i < TESS_CDNS.length; i++) {
       try {
-        setOcrProgress(0.1, "正在加载识别语言包…");
+        setOcrProgress(0.1, "酒柜识别中... ...");
         worker = await createOcrWorker(TESS_CDNS[i], function (m) {
           if (m.status === "recognizing text") {
-            setOcrProgress(0.25 + m.progress * 0.7, "正在识别照片中的酒瓶标签… " + Math.round(m.progress * 100) + "%");
+            setOcrProgress(0.25 + m.progress * 0.7, "酒柜识别中... ...");
           }
         });
         break;
       } catch (e) { lastErr = e; }
     }
     if (!worker) throw lastErr || new Error("ocr init failed");
-    setOcrProgress(0.25, "正在识别照片中的酒瓶标签…");
+    setOcrProgress(0.25, "酒柜识别中... ...");
     var ret = await worker.recognize(file);
     await worker.terminate();
     return (ret.data && ret.data.text) || "";
@@ -2654,7 +2697,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           return;
         } catch (e) {
           console.warn("Remote OCR failed, falling back to Tesseract:", e.message);
-          setOcrProgress(0.05, "高精度 OCR 不可用，切换本地识别…");
+          setOcrProgress(0.05, "酒柜识别中... ...");
         }
       }
       var text = await runTesseractOCR(file);
