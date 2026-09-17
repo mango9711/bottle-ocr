@@ -229,6 +229,9 @@ def merge_fragments(groups, boxes, med_h):
             overlap_ratio = x_overlap / max(fw, 1)
             x_dist = abs(fcx - bcx)
             y_dist = abs(fcy - bcy)
+            # x 投影完全不重叠 → 独立小瓶，禁止合并（瓶颈/瓶盖碎片必与瓶身 x 重叠）
+            if x_overlap <= 0:
+                continue
             # x 重叠过半时强烈倾向合并（瓶颈/瓶盖文字）
             if overlap_ratio > 0.5:
                 score = y_dist * 0.1
