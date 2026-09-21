@@ -122,18 +122,33 @@ def x_gap(a, b):
 
 def cluster_bottles(lines, img_w, img_h):
     """
-    分瓶：
-      A. x 轴区间连通分量（并排瓶）；
-      B. 簇内 y 轴大间隙切分（前后叠放/上下两瓶）。
-    返回组列表，每组是 line 的下标数组，按 (瓶左->右, 上->下) 排序。
+    分层分瓶（适配多层酒架/酒墙）：
+      1. 按全局 y 中心的大间隙切分「横排层级」（一层 = 一排深度一致的酒）；
+      2. 每层内用 x 轴区间连通分量分并排瓶；
+      3. 层内做瓶颈/瓶盖碎片合并（严禁跨层，避免前排小酒版被并入后排大瓶）；
+      4. 严格受限的跨层修复：x 几乎完全重叠且 y 间距不大 → 同一瓶的稀疏标签。
+    返回组列表（每组是 line 下标数组），按 (层级从上到下, 同层从左到右) 排序。
     """
+    n = len(lines)
     boxes = [ln["box"] for ln in lines]
     heights = [b[3] - b[1] for b in boxes]
     med_h = max(median(heights), 12)
-    gap_x = max(med_h * 1.2, img_w * 0.01)
+    gap_x = max(med_h * 0.7, img_w * 0.008)
 
-    # A. 并查集：x 区间重叠或间隙 <= gap_x 即同瓶
-    parent = list(range(len(lines)))
+    # 1. 横排层级：全局 y 中心排序，相邻中心跨越大空档 → 新的一层
+    order = sorted(range(n), key=lambda i: (boxes[i][1] + boxes[i][3]) / 2)
+    band_gap = max(med_h * 2.8, img_h * 0.075)
+    bands = [[order[0]]]
+    for k in range(1, n):
+        pi, ci = order[k - 1], order[k]
+        pcy = (boxes[pi][1] + boxes[pi][3]) / 2
+        ccy = (boxes[ci][1] + boxes[ci][3]) / 2
+        if ccy - pcy > band_gap:
+            bands.append([])
+        bands[-1].append(ci)
+
+    # 2. 层内 x 轴并查集
+    parent = list(range(n))
 
     def find(i):
         while parent[i] != i:
@@ -146,41 +161,60 @@ def cluster_bottles(lines, img_w, img_h):
         if ri != rj:
             parent[ri] = rj
 
-    for i in range(len(lines)):
-        for j in range(i + 1, len(lines)):
-            if x_gap(boxes[i], boxes[j]) <= gap_x:
-                # 只在 y 投影也接近时连通：避免对角线误连（间隙还要小于 2.5 倍行高）
-                yi = (boxes[i][1] + boxes[i][3]) / 2
-                yj = (boxes[j][1] + boxes[j][3]) / 2
-                if abs(yi - yj) < med_h * 6:
+    per_band = []
+    for band in bands:
+        for a in range(len(band)):
+            for b in range(a + 1, len(band)):
+                i, j = band[a], band[b]
+                if x_gap(boxes[i], boxes[j]) <= gap_x:
                     union(i, j)
+        gd = {}
+        for i in band:
+            gd.setdefault(find(i), []).append(i)
+        # 3. 层内碎片合并（禁止跨层吞瓶）
+        per_band.append(merge_fragments(list(gd.values()), boxes, med_h))
 
-    groups = {}
-    for i in range(len(lines)):
-        groups.setdefault(find(i), []).append(i)
+    # 4. 跨层有限修复：仅 x 高度重叠 + y 间距小的相邻层（同一瓶稀疏标签误切）
+    def gbox(g):
+        return (min(boxes[i][0] for i in g), min(boxes[i][1] for i in g),
+                max(boxes[i][2] for i in g), max(boxes[i][3] for i in g))
 
-    # B. 每组内按 y 大间隙拆分（前后叠放的两瓶 x 区间可能重叠）
-    final_groups = []
-    gap_y = med_h * 3.5
-    for idxs in groups.values():
-        idxs_sorted = sorted(idxs, key=lambda i: (boxes[i][1] + boxes[i][3]) / 2)
-        start = 0
-        for k in range(1, len(idxs_sorted)):
-            prev_bottom = boxes[idxs_sorted[k - 1]][3]
-            cur_top = boxes[idxs_sorted[k]][1]
-            if cur_top - prev_bottom > gap_y:
-                final_groups.append(idxs_sorted[start:k])
-                start = k
-        final_groups.append(idxs_sorted[start:])
+    changed = True
+    while changed:
+        changed = False
+        for bi in range(len(per_band) - 1):
+            upper, lower = per_band[bi], per_band[bi + 1]
+            for ui, ug in enumerate(upper):
+                if ug is None:
+                    continue
+                ux1, uy1, ux2, uy2 = gbox(ug)
+                ucy = (uy1 + uy2) / 2
+                for li, lg in enumerate(lower):
+                    if lg is None:
+                        continue
+                    lx1, ly1, lx2, ly2 = gbox(lg)
+                    lcy = (ly1 + ly2) / 2
+                    if abs(lcy - ucy) > med_h * 7:
+                        continue
+                    ov = max(0, min(ux2, lx2) - max(ux1, lx1))
+                    narrow = min(ux2 - ux1, lx2 - lx1)
+                    if ov / max(narrow, 1) < 0.8:
+                        continue
+                    lower[li] = lg + ug
+                    upper[ui] = None
+                    changed = True
+                    break
+            per_band[bi] = [g for g in upper if g is not None]
 
-    # 组排序：从左到右（cx），同列从上到下（cy）
-    def group_key2(g):
-        cx = sum((boxes[i][0] + boxes[i][2]) for i in g) / (2 * len(g))
+    final = [g for gs in per_band for g in gs if g]
+
+    def gkey(g):
         cy = sum((boxes[i][1] + boxes[i][3]) for i in g) / (2 * len(g))
-        return (cx, cy)
+        cx = sum((boxes[i][0] + boxes[i][2]) for i in g) / (2 * len(g))
+        return (cy, cx)
 
-    final_groups.sort(key=group_key2)
-    return merge_fragments(final_groups, boxes, med_h)
+    final.sort(key=gkey)
+    return final
 
 
 def merge_fragments(groups, boxes, med_h):

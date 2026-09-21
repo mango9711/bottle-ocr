@@ -276,8 +276,18 @@
   .ocr-bar .t { font-size: 13px; color: var(--gold-light); margin-bottom: 8px; }
   .ocr-track { height: 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
   .ocr-track i {
-    display: block; height: 100%; width: 0; border-radius: 6px;
+    display: block; height: 100%; width: 0; border-radius: 6px; position: relative;
+    overflow: hidden;
     background: linear-gradient(90deg, var(--gold-light), var(--gold)); transition: width 0.25s;
+  }
+  .ocr-track i::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 44px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    animation: ocrShimmer 1.1s linear infinite;
+  }
+  @keyframes ocrShimmer {
+    from { left: -44px; }
+    to { left: 100%; }
   }
 
   .modal {
@@ -324,7 +334,7 @@
 
   .toast {
     position: fixed; bottom: 34px; left: 50%;
-    transform: translateX(-50%) translateY(80px);
+    transform: translateX(-50%) translateY(200px);
     background: #122923; color: var(--gold-light);
     border: 1px solid rgba(212, 175, 106, 0.4);
     padding: 12px 24px; border-radius: 14px; font-size: 14px; font-weight: 600;
@@ -1546,9 +1556,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var t = $("toast");
     if (!t) return;
     t.textContent = text;
+    t.classList.remove("show");
+    void t.offsetWidth;
     t.classList.add("show");
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(function () { t.classList.remove("show"); }, 2400);
+    showToast._t = setTimeout(function () { t.classList.remove("show"); }, 1000);
   }
 
   function scoreRecipes() {
@@ -2480,18 +2492,18 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     gin: ["gin", "金酒", "琴酒", "杜松子", "tanqueray", "bombay", "beefeater", "gordon", "hendrick", "添加利", "孟买", "london dry"],
     white_rum: ["white rum", "silver rum", "light rum", "blanco rum", "白朗姆", "bacardi", "百加得", "havana club", "carta blanca"],
     dark_rum: ["dark rum", "black rum", "gold rum", "anejo", "黑朗姆", "myers", "captain morgan", "摩根船长", "摩根"],
-    tequila: ["tequila", "tiquila", "龙舌兰", "patron", "cuervo", "sauza", "olmeca", "奥美加", "豪帅", "培恩", "karka", "唐胡里奥", "don julio", "jose cuervo", "1800", "avion", "clase azul"],
+    tequila: ["tequila", "tequil", "tiquila", "龙舌兰", "patron", "cuervo", "sauza", "olmeca", "奥美加", "豪帅", "培恩", "karka", "唐胡里奥", "don julio", "jose cuervo", "1800", "avion", "clase azul", "silver"],
     whiskey: ["whisky", "whiskey", "whsky", "wnisky", "wni sky", "seotch", "scotch", "bourbon", "波本", "威士忌", "jack daniel", "daniels", "jim beam", "占边", "johnnie walker", "chivas", "ballantine", "makers mark", "macallan", "麦卡伦", "glen"],
     brandy: ["brandy", "cognac", "白兰地", "干邑", "hennessy", "轩尼诗", "remy martin", "人头马", "martell", "马爹利", "courvoisier"],
-    baijiu: ["baijiu", "白酒", "燒酒", "烧酒", "moutai", "maotai", "茅台", "茅臺", "wuliangye", "五粮液", "五糧液", "guojiao", "国窖", "國窖", "1573", "luzhou", "泸州老窖", "瀘州老窖", "汾酒", "jiannanchun", "剑南春", "劍南春", "yanghe", "洋河", "shuijingfang", "水井坊", "langjiu", "郎酒", "xifeng", "西凤", "gujing", "古井贡", "古井貢", "zhijiang", "枝江", "gaogou", "高沟", "shuanggou", "双沟"],
-    wine: ["wine", "葡萄酒", "红酒", "红葡萄酒", "白葡萄酒", "great wall", "changyu", "长城", "张裕", "cabernet", "赤霞珠", "解百纳", "merlot", "梅洛", "美乐", "chardonnay", "霞多丽", "riesling", "雷司令", "pinot", "黑皮诺", "shiraz", "syrah", "西拉", "sauvignon", "长相思", "semillon", "赛美蓉"],
+    baijiu: ["baijiu", "白酒", "燒酒", "烧酒", "moutai", "maotai", "茅台", "茅臺", "wuliangye", "五粮液", "五糧液", "guojiao", "国窖", "國窖", "1573", "luzhou", "泸州老窖", "瀘州老窖", "汾酒", "jiannanchun", "剑南春", "劍南春", "yanghe", "洋河", "shuijingfang", "水井坊", "langjiu", "郎酒", "xifeng", "西凤", "gujing", "古井贡", "古井貢", "zhijiang", "枝江", "gaogou", "高沟", "shuanggou", "双沟", "贵州", "小坛", "xiaotan"],
+    wine: ["wine", "葡萄酒", "红酒", "红葡萄酒", "白葡萄酒", "great wall", "changyu", "长城", "张裕", "cabernet", "赤霞珠", "解百纳", "merlot", "梅洛", "美乐", "chardonnay", "霞多丽", "riesling", "雷司令", "pinot", "黑皮诺", "shiraz", "syrah", "西拉", "sauvignon", "长相思", "semillon", "赛美蓉", "moet", "moët", "chandon", "酩悦", "imperial", "brut"],
     prosecco: ["prosecco", "普罗塞克", "起泡酒", "起泡葡萄酒", "champagne", "香槟", "sparkling wine", "cava"],
     cointreau: ["cointreau", "君度", "triple sec", "grand marnier", "柑曼怡", "橙味利口"],
     campari: ["campari", "金巴利", "甘巴利"],
     aperol: ["aperol", "阿佩罗"],
-    sweet_vermouth: ["sweet vermouth", "vermouth rosso", "甜苦艾", "苦艾酒", "noilly prat"],
-    dry_vermouth: ["dry vermouth", "extra dry", "干苦艾"],
-    kahlua: ["kahlua", "甘露咖啡", "咖啡利口", "coffee liqueur"],
+    sweet_vermouth: ["sweet vermouth", "vermouth rosso", "甜苦艾", "苦艾酒", "noilly prat", "martini", "hartini", "马天尼"],
+    dry_vermouth: ["dry vermouth", "extra dry", "干苦艾", "martini", "hartini", "马天尼"],
+    kahlua: ["kahlua", "ahlua", "khalua", "kahla", "甘露咖啡", "咖啡利口", "coffee liqueur"],
     baileys: ["baileys", "bailey", "百利"],
     malibu: ["malibu", "马里布"],
     peach: ["peachtree", "peach liqueur", "水蜜桃利口", "桃味利口", "蜜桃利口"],
@@ -2588,9 +2600,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     setOcrProgress(0.18, "酒柜识别中... ...");
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, OCR_API_TIMEOUT);
-    var hintTimer = setTimeout(function () {
-      setOcrProgress(0.4, "酒柜识别中... ...");
-    }, 8000);
+    var progress = 0.18;
+    var creepTimer = setInterval(function () {
+      progress = progress + (0.9 - progress) * 0.15;
+      setOcrProgress(progress, "酒柜识别中... ...");
+    }, 1000);
     try {
       var resp = await fetch(OCR_API_URL + "/ocr", {
         method: "POST",
@@ -2602,7 +2616,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       return await resp.json();
     } finally {
       clearTimeout(timer);
-      clearTimeout(hintTimer);
+      clearInterval(creepTimer);
     }
   }
 
